@@ -8,7 +8,21 @@ from core.processing import mix_sho, apply_palette
 from core.preview import make_preview
 
 
-def run():
+# ─────────────────────────────────────
+# CACHE FITS
+# ─────────────────────────────────────
+@st.cache_data
+def load_sho_data(S_path, H_path, O_path):
+    S, _ = load_fits(S_path)
+    H, _ = load_fits(H_path)
+    O, _ = load_fits(O_path)
+    return S, H, O
+
+
+# ─────────────────────────────────────
+# PAGE SHO MIXER
+# ─────────────────────────────────────
+def sho_mixer():
 
     st.title("🌈 SHO Mixer")
 
@@ -18,8 +32,9 @@ def run():
     workdir = st.session_state.get("workdir")
 
     if not workdir:
-        st.warning("Projet non défini — va dans l’onglet Projet")
-        st.stop()
+        st.warning("Projet non défini — sélectionne un projet dans l’onglet Projet")
+        st.info("👉 Les outils seront disponibles une fois le projet chargé.")
+        return
 
     path = Path(workdir)
 
@@ -29,27 +44,40 @@ def run():
 
     if not (S_path.exists() and H_path.exists() and O_path.exists()):
         st.error("Fichiers SHO introuvables dans le dossier")
-        st.stop()
+        return
 
     # =========================
-    # LOAD FITS
+    # LOAD DATA
     # =========================
-    S, _ = load_fits(S_path)
-    H, _ = load_fits(H_path)
-    O, _ = load_fits(O_path)
+    S, H, O = load_sho_data(S_path, H_path, O_path)
 
     # =========================
-    # LAYOUT
+    # DEFAULT STATE SAFE
     # =========================
-    col_left, col_right = st.columns([1, 2])
+    if "sho_palette" not in st.session_state:
+        st.session_state.sho_palette = "Hubble SHO"
+
+    if "sho_stretch" not in st.session_state:
+        st.session_state.sho_stretch = 3.0
+
+    if "sho_zoom" not in st.session_state:
+        st.session_state.sho_zoom = 1.0
 
     # =========================
-    # LEFT PANEL (CONTROLS)
+    # LAYOUT GLOBAL
     # =========================
+    col_left, col_right = st.columns([1, 2], gap="large")
+
+    # =========================================================
+    # LEFT PANEL
+    # =========================================================
     with col_left:
 
-        st.subheader("🎛 Contrôles")
+        st.subheader("⚙️ Contrôles")
 
+        # ─────────────────────────────
+        # PALETTE
+        # ─────────────────────────────
         palette = st.selectbox(
             "Palette",
             [
@@ -66,17 +94,7 @@ def run():
             key="sho_palette"
         )
 
-        stretch = st.slider("Stretch", 0.5, 10.0, 3.0, key="sho_stretch")
-        zoom = st.slider("Zoom", 1.0, 2.0, 1.0, key="sho_zoom")
-
-        st.markdown("---")
-
-        st.subheader("🎨 RGB Mix")
-
-        # palette par défaut
-        r_s, r_h, g_h, g_o, b_o = apply_palette(palette)
-
-        # sliders UNIQUEMENT en mode manual + keys obligatoires
+        # Valeurs RGB
         if palette == "Manual":
 
             r_s = st.slider("R SII", 0.0, 1.0, 0.8, key="sho_r_s")
@@ -85,34 +103,61 @@ def run():
             g_o = st.slider("G OIII", 0.0, 1.0, 0.3, key="sho_g_o")
             b_o = st.slider("B OIII", 0.0, 1.0, 1.0, key="sho_b_o")
 
-        st.markdown("---")
-        st.write(f"📁 Projet : `{workdir}`")
+        else:
+            r_s, r_h, g_h, g_o, b_o = apply_palette(palette)
 
-    # =========================
-    # CORE PROCESSING
-    # =========================
-    R, G, B = mix_sho(S, H, O, r_s, r_h, g_h, g_o, b_o)
+        # ─────────────────────────────
+        # IMAGE SETTINGS
+        # ─────────────────────────────
+        st.divider()
 
-    RGB = make_preview(R, G, B, stretch)
+        stretch = st.slider(
+            "Stretch",
+            0.5,
+            10.0,
+            st.session_state.sho_stretch,
+            key="sho_stretch"
+        )
 
-    if zoom > 1:
-        RGB = spzoom(RGB, (zoom, zoom, 1), order=1)
+        zoom = st.slider(
+            "Zoom",
+            1.0,
+            2.0,
+            st.session_state.sho_zoom,
+            key="sho_zoom"
+        )
 
-    # =========================
+        # ─────────────────────────────
+        # EXPORT
+        # ─────────────────────────────
+        st.divider()
+        st.subheader("💾 Export")
+
+        if st.button("⬇ Export SHO"):
+
+            with st.spinner("Export en cours..."):
+
+                R, G, B = mix_sho(S, H, O, r_s, r_h, g_h, g_o, b_o)
+
+                save_fits(path / "R.fit", R)
+                save_fits(path / "G.fit", G)
+                save_fits(path / "B.fit", B)
+
+            st.success("Export terminé ✔")
+
+    # =========================================================
     # RIGHT PANEL (PREVIEW)
-    # =========================
+    # =========================================================
     with col_right:
 
         st.subheader("👁 Preview")
 
+        # recompute
+        R, G, B = mix_sho(S, H, O, r_s, r_h, g_h, g_o, b_o)
+
+        RGB = make_preview(R, G, B, stretch)
+
+        if zoom > 1:
+            RGB = spzoom(RGB, (zoom, zoom, 1), order=1)
+
         st.image(RGB, use_container_width=True)
-
-        st.markdown("---")
-
-        if st.button("Export FITS (RGB linear)", key="sho_export"):
-
-            save_fits(path / "R.fit", R)
-            save_fits(path / "G.fit", G)
-            save_fits(path / "B.fit", B)
-
-            st.success("Export terminé ✔")

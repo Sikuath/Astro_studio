@@ -1,33 +1,69 @@
+/* =========================
+   APP BACKGROUND
+========================= */
 .stApp {
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
 }
 
+/* =========================
+   SIDEBAR GLASS EFFECT
+========================= */
 section[data-testid="stSidebar"] {
     background: rgba(15,18,30,0.82);
     backdrop-filter: blur(12px);
 }
 
-.main .block-container {
+section[data-testid="stSidebar"] > div {
+    background: transparent;
+}
 
+/* =========================
+   MAIN CONTAINER
+========================= */
+div.block-container {
     background: rgba(15,18,30,0.55);
-
     backdrop-filter: blur(8px);
-
     border-radius: 20px;
-
     padding: 2rem;
-
     margin-top: 1rem;
-
     margin-bottom: 1rem;
 }
 
-h1,h2,h3,h4,h5,h6{
-    color:white;
+/* =========================
+   TEXT STYLE
+========================= */
+h1, h2, h3, h4, h5, h6 {
+    color: white;
 }
 
-p,label,div{
-    color:#ECECEC;
+p, label {
+    color: #ECECEC;
+}
+
+/* ⚠️ éviter de casser Streamlit */
+div {
+    color: inherit;
+}
+
+/* =========================
+   BUTTONS (IMPORTANT UX)
+========================= */
+.stButton > button {
+    background: rgba(80,120,255,0.2);
+    color: white;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+.stButton > button:hover {
+    background: rgba(80,120,255,0.4);
+}
+
+/* =========================
+   SLIDERS
+========================= */
+.stSlider > div {
+    color: white;
 }

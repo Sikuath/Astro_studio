@@ -2,170 +2,116 @@ import streamlit as st
 from pathlib import Path
 import base64
 
-from tools import sho_mixer
-from ui.project import sidebar_project
+from ui.sidebar import sidebar
+
+from ui.pages.home import show_home
+from ui.pages.project import show_project
+from tools.sho_mixer import sho_mixer
+#from ui.pages.results import show_results
 
 
-# ==========================================================
-# CSS
-# ==========================================================
-
-from pathlib import Path
-
-def load_css():
-
-    css = Path("ui/style.css")
-
-    if css.exists():
-        with open(css, encoding="utf-8") as f:
-            st.markdown(
-                f"<style>{f.read()}</style>",
-                unsafe_allow_html=True,
-            )
-
-# ==========================================================
-# CONFIG
-# ==========================================================
-
+# ─────────────────────────────────────
+# CONFIG STREAMLIT
+# ─────────────────────────────────────
 st.set_page_config(
-    page_title="SHO Studio",
-    page_icon="🌌",
-    layout="wide"
+    page_title="Astro Studio",
+    page_icon="🔭",
+    layout="wide",
+    initial_sidebar_state="expanded",
 )
 
 
-# ==========================================================
-# BACKGROUND
-# ==========================================================
+# ─────────────────────────────────────
+# CSS + BACKGROUND
+# ─────────────────────────────────────
+def load_css():
+
+    css_path = Path("ui/style.css")
+
+    if css_path.exists():
+        st.markdown(
+            f"<style>{css_path.read_text(encoding='utf-8')}</style>",
+            unsafe_allow_html=True
+        )
+
 
 def set_background():
 
-    bg = Path("ui/background.jpg")
+    img_path = Path("ui/background.jpg")
 
-    if not bg.exists():
-        return
+    if img_path.exists():
+        with open(img_path, "rb") as f:
+            encoded = base64.b64encode(f.read()).decode()
 
-    with open(bg, "rb") as f:
-        encoded = base64.b64encode(f.read()).decode()
-
-    st.markdown(
-        f"""
-        <style>
-
-        .stApp {{
-            background:
-                linear-gradient(
-                    rgba(10,10,20,0.55),
-                    rgba(10,10,20,0.55)
-                ),
-                url("data:image/jpeg;base64,{encoded}");
-
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-        }}
-
-        /* Sidebar */
-
-        section[data-testid="stSidebar"] {{
-            background: rgba(15,18,30,0.82);
-            backdrop-filter: blur(12px);
-        }}
-
-        /* Zone principale */
-
-        .main .block-container {{
-
-            background: rgba(15,18,30,0.55);
-
-            backdrop-filter: blur(8px);
-
-            border-radius: 20px;
-
-            padding: 2rem;
-
-            margin-top: 1rem;
-
-            margin-bottom: 1rem;
-        }}
-
-        h1,h2,h3,h4,h5,h6 {{
-            color: white;
-        }}
-
-        p, label, div {{
-            color: #ECECEC;
-        }}
-
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
+        st.markdown(
+            f"""
+            <style>
+            .stApp {{
+                background-image: url("data:image/png;base64,{encoded}");
+                background-size: cover;
+                background-position: center;
+                background-attachment: fixed;
+            }}
+            </style>
+            """,
+            unsafe_allow_html=True
+        )
 
 
-set_background()
+# ─────────────────────────────────────
+# INIT STATE
+# ─────────────────────────────────────
+def init_state():
+    defaults = {
+        "page": "Accueil",
+        "workdir": None,
+        "siril": None,
+        "config": None,
+    }
+
+    for k, v in defaults.items():
+        if k not in st.session_state:
+            st.session_state[k] = v
+
+
+init_state()
+
+
+# ─────────────────────────────────────
+# STYLE GLOBAL (IMPORTANT)
+# ─────────────────────────────────────
 load_css()
+set_background()
 
 
-# ==========================================================
+# ─────────────────────────────────────
 # SIDEBAR
-# ==========================================================
-
-sidebar_project()
-
-page = st.sidebar.radio(
-    "Modules",
-    [
-        "🏠 Projet",
-        "🌈 SHO Mixer",
-    ]
-)
+# ─────────────────────────────────────
+page = sidebar()
 
 
-# ==========================================================
-# MODULES
-# ==========================================================
+# ─────────────────────────────────────
+# ROUTING
+# ─────────────────────────────────────
+if page == "Accueil":
+    show_home()
 
-if page == "🌈 SHO Mixer":
-    sho_mixer.run()
+elif page == "Projet":
+    show_project()
+
+elif page == "Traitement":
+    sho_mixer()
+
+elif page == "Résultats":
+    show_results()
+
+else:
+    st.error("Page inconnue")
 
 
-# ==========================================================
-# HOME
-# ==========================================================
+# ─────────────────────────────────────
+# FOOTER
+# ─────────────────────────────────────
+st.markdown("---")
 
-elif page == "🏠 Projet":
-
-    col1, col2 = st.columns([2, 1])
-
-    with col1:
-
-        st.title("📁 Projet Astro Studio")
-
-        st.write(
-            """
-            Configure ton dossier de travail dans la barre latérale.
-
-            SHO Studio détectera automatiquement les fichiers :
-
-            - SII.fit
-            - HA.fit
-            - OIII.fit
-            """
-        )
-
-    with col2:
-
-        st.info(
-            """
-💡 **Astuce**
-
-Place les trois fichiers FITS :
-
-- SII.fit
-- HA.fit
-- OIII.fit
-
-dans le même dossier avant de lancer le mixage.
-            """
-        )
+st.caption("🔭 Astro Studio — pipeline astrophotographie (Siril + Streamlit)")
