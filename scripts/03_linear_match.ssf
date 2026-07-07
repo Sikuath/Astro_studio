@@ -8,6 +8,13 @@ requires 1.2
 
 cd process/linear
 
+# --------------------------------------------------
+# HA -> HA
+# --------------------------------------------------
+
+load HA.fit
+
+save ../../HA_linear.fit
 
 # --------------------------------------------------
 # OIII -> HA
@@ -17,7 +24,7 @@ load OIII.fit
 
 linear_match HA.fit 0 1
 
-save OIII_linear.fit
+save ../../OIII_linear.fit
 
 
 # --------------------------------------------------
@@ -28,7 +35,7 @@ load SII.fit
 
 linear_match HA.fit 0 1
 
-save SII_linear.fit
+save ../../SII_linear.fit
 
 
 # --------------------------------------------------

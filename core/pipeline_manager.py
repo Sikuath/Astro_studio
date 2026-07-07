@@ -114,7 +114,17 @@ class PipelineManager:
                 dst
             )
 
+    # =========================================================
+    # CLEANUP
+    # =========================================================
+    def cleanup(self):
 
+        process_dir = self.workdir / "process"
+
+        if process_dir.exists():
+            shutil.rmtree(process_dir)
+
+        print("Temporary process directory removed.")
 
     # =========================================================
     # STEP 0
@@ -602,11 +612,21 @@ class PipelineManager:
 
             progress_callback(1.0)
 
+        # =====================================================
+        # STEP 7 - CLEANUP
+        # =====================================================
+        log("🧹 STEP 7 - Cleaning temporary files")
 
+        try:
+            self.cleanup()
+        except Exception as e:
+            log(f"⚠ Cleanup failed: {e}")
 
-        log(
-            "🎉 PIPELINE COMPLETE"
-        )
+        log("✔ Cleanup done")
 
+        # =====================================================
+        # END
+        # =====================================================
+        log("🎉 PIPELINE COMPLETE")
 
         return True, logs

@@ -38,9 +38,9 @@ def sho_mixer():
 
     path = Path(workdir)
 
-    S_path = path / "SII.fit"
-    H_path = path / "HA.fit"
-    O_path = path / "OIII.fit"
+    S_path = path / "SII_linear.fit"
+    H_path = path / "HA_linear.fit"
+    O_path = path / "OIII_linear.fit"
 
     if not (S_path.exists() and H_path.exists() and O_path.exists()):
         st.error("Fichiers SHO introuvables dans le dossier")
