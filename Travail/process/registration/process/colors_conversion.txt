@@ -1,0 +1,3 @@
+'F:\Astro_studio\Travail\process\registration\HA_astrom.fit' -> 'process\colors_00001.fit'
+'F:\Astro_studio\Travail\process\registration\OIII_astrom.fit' -> 'process\colors_00002.fit'
+'F:\Astro_studio\Travail\process\registration\SII_astrom.fit' -> 'process\colors_00003.fit'

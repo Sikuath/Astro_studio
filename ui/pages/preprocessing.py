@@ -1,6 +1,7 @@
 import streamlit as st
 from pathlib import Path
-import time
+
+from core.pipeline_manager import PipelineManager
 
 
 def show_preprocessing():
@@ -8,44 +9,32 @@ def show_preprocessing():
     st.title("🔭 Prétraitement Siril")
 
     workdir = st.session_state.get("workdir")
-    siril = st.session_state.get("siril")
+    siril_path = st.session_state.get("siril")
 
-    if not workdir or not siril:
+    if not workdir or not siril_path:
         st.warning("Projet ou Siril non configuré")
         return
 
-    st.markdown("### 📂 Projet actif")
-    st.code(workdir)
-
-    # -------------------------
-    # UI STATUS
-    # -------------------------
-    st.markdown("## ⚙️ Pipeline")
-
-    steps = [
-        "Astrométrie",
-        "Alignement",
-        "Linear match",
-        "Normalisation"
-    ]
+    manager = PipelineManager(workdir, siril_path)
 
     progress = st.progress(0)
-    log_box = st.empty()
+    terminal = st.empty()
 
-    # -------------------------
-    # START BUTTON
-    # -------------------------
-    if st.button("🚀 Lancer le prétraitement"):
+    logs = []
 
-        for i, step in enumerate(steps):
+    def log(line):
+        logs.append(line)
+        terminal.code("\n".join(logs[-40:]))
 
-            log_box.info(f"▶ {step} en cours...")
+    def callback(line):
+        log(line)
 
-            # ici plus tard: runner.run(script)
-            time.sleep(1)  # simulation
+    if st.button("🚀 Lancer pipeline complet"):
 
-            log_box.success(f"✔ {step} terminé")
+        ok, logs = manager.run_full(callback=callback)
 
-            progress.progress((i + 1) / len(steps))
-
-        st.success("🎉 Prétraitement terminé !")
+        if ok:
+            progress.progress(1.0)
+            st.success("🎉 Pipeline terminé")
+        else:
+            st.error("❌ Pipeline en erreur")

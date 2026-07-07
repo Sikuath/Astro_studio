@@ -8,7 +8,6 @@ from ui.pages.home import show_home
 from ui.pages.project import show_project
 from tools.sho_mixer import sho_mixer
 from ui.pages.preprocessing import show_preprocessing
-from tools.test_runner import test_runner
 #from ui.pages.results import show_results
 
 

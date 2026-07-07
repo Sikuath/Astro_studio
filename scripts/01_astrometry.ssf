@@ -1,0 +1,26 @@
+requires 1.4.0
+
+# ====================================
+# ASTRO STUDIO - STEP 01
+# ASTROMETRY ONLY (NO SEQUENCE OPS)
+# ====================================
+cd "process/astrometrie"
+# --- SII ---
+load SII.fit
+platesolve
+save SII_astrom.fit
+
+# --- HA ---
+load HA.fit
+platesolve
+save HA_astrom.fit
+
+# --- OIII ---
+load OIII.fit
+platesolve
+save OIII_astrom.fit
+
+# ====================================
+# ASTROMETRY OK
+# ====================================
+close
