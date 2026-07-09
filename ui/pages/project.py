@@ -2,33 +2,66 @@ import streamlit as st
 from pathlib import Path
 
 from core.config import load_config, save_config
+from core.siril_detect import detect_siril
+
 
 
 def show_project():
 
     st.title("📁 Projet")
 
+
     st.markdown(
         r"""
         Configurer l'environnement de travail d'Astro Studio.  
 
-        Le "Dossier de travail" doit contenir les trois fichiers Ha.fit SII.fit et OIII.fit.  
+        Le **Dossier de travail** doit contenir les trois fichiers Ha.fit ,SII.fit et OIII.fit.  
 
-        Astro_studio a besoin de connaitre l'emplacement du chemin du logiciel siril-cli.exe qui se trouve au même endroit que le logiciel Siril.  
-
-        Chemin par défaut : "C:\Program Files\Siril\bin\siril-cli.exe"  
-                
-        """,unsafe_allow_html=True
+        Astro Studio détecte automatiquement le logiciel Siril installé sur votre ordinateur.
         
+        """,
+        unsafe_allow_html=True
     )
+
+
+
     # ─────────────────────────────
     # CHARGEMENT CONFIG
     # ─────────────────────────────
 
-    if "config" not in st.session_state or st.session_state.config is None:
+    if (
+        "config" not in st.session_state
+        or st.session_state.config is None
+    ):
+
         st.session_state.config = load_config()
 
+
     config = st.session_state.config
+
+
+
+    # ─────────────────────────────
+    # DETECTION AUTOMATIQUE SIRIL
+    # ─────────────────────────────
+
+    detected_siril = detect_siril()
+
+
+
+    if detected_siril:
+
+        st.success(
+            f"🔭 Siril détecté automatiquement :\n\n{detected_siril}"
+        )
+
+
+    else:
+
+        st.warning(
+            "⚠ Siril n'a pas été détecté automatiquement."
+        )
+
 
 
     # ─────────────────────────────
@@ -37,8 +70,12 @@ def show_project():
 
     workdir = st.text_input(
         "📂 Dossier de travail",
-        value=config.get("workdir", "")
+        value=config.get(
+            "workdir",
+            ""
+        )
     )
+
 
 
     # ─────────────────────────────
@@ -46,22 +83,33 @@ def show_project():
     # ─────────────────────────────
 
     siril = st.text_input(
+
         "🔭 Chemin siril-cli.exe",
-        value=config.get("siril_path", "")
+
+        value=config.get(
+            "siril_path",
+            detected_siril or ""
+        )
+
     )
 
 
+
     st.divider()
+
 
 
     # ─────────────────────────────
     # VALIDATION
     # ─────────────────────────────
 
-    if st.button("🚀 Valider le projet"):
+    if st.button(
+        "🚀 Valider le projet"
+    ):
 
 
         errors = []
+
 
 
         if not workdir:
@@ -78,6 +126,7 @@ def show_project():
             )
 
 
+
         if not siril:
 
             errors.append(
@@ -92,6 +141,7 @@ def show_project():
             )
 
 
+
         # -------------------------
         # ERREURS
         # -------------------------
@@ -99,7 +149,11 @@ def show_project():
         if errors:
 
             for error in errors:
-                st.error(error)
+
+                st.error(
+                    error
+                )
+
 
 
         # -------------------------
@@ -108,24 +162,34 @@ def show_project():
 
         else:
 
+
             config["workdir"] = workdir
+
             config["siril_path"] = siril
 
-            save_config(config)
+
+            save_config(
+                config
+            )
+
 
 
             st.session_state.config = config
+
             st.session_state.workdir = workdir
+
             st.session_state.siril = siril
 
 
-            # passage étape suivante
+
             st.session_state.workflow_step = 1
+
 
 
             st.success(
                 "Projet validé ✔️ Passage au prétraitement..."
             )
+
 
             st.rerun()
 
@@ -134,18 +198,26 @@ def show_project():
     st.divider()
 
 
+
     # ─────────────────────────────
-    # ETAT
+    # ETAT DU PROJET
     # ─────────────────────────────
 
-    st.subheader("📊 État du projet")
+    st.subheader(
+        "📊 État du projet"
+    )
 
 
-    if st.session_state.workdir:
+
+    if st.session_state.get(
+        "workdir"
+    ):
+
 
         st.success(
             f"📂 {st.session_state.workdir}"
         )
+
 
     else:
 
@@ -154,13 +226,19 @@ def show_project():
         )
 
 
-    if st.session_state.siril:
+
+    if st.session_state.get(
+        "siril"
+    ):
+
 
         st.success(
-            "🔭 Siril détecté"
+            "🔭 Siril configuré ✔"
         )
 
+
     else:
+
 
         st.warning(
             "Siril non configuré"
