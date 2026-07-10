@@ -1,0 +1,118 @@
+################################################################################
+# Script Sirilic - Traitement LSHO optimisé (référence H)
+requires 1.4.0-beta4
+
+# Répertoire de travail principal
+cd "C:/Users/yoye_/Pictures/Astrophoto/Traitement"
+
+# Paramètres généraux
+set16bits
+setcompress 0
+setext fit
+setfindstar reset
+
+################################################################################
+# -----------------------------
+# Étape 0 : Création du Master Dark
+cd "darks"
+convert darks -out=../x_temp
+cd "../x_temp"
+stack darks mean w 3.000 3.000 -nonorm -out=master_dark.fit
+cd ".."
+
+# Étape 1 : Création du Master Bias
+cd "biases"
+convert biases -out=../x_temp
+cd "../x_temp"
+stack biases mean w 3.000 3.000 -nonorm -out=master_bias.fit
+cd ".."
+
+################################################################################
+# -----------------------------
+# Étape 2 : Traitement des flats
+
+# --- Luminance (L)
+cd "L/flats"
+convert flats_L -out=../../x_temp
+cd "../../x_temp"
+calibrate flats_L -bias=master_bias.fit
+stack pp_flats_L mean w 3.000 3.000 -norm=mul -out=master_flat_L
+cd ".."
+
+# --- Soufre (S)
+cd "S/flats"
+convert flats_S -out=../../x_temp
+cd "../../x_temp"
+calibrate flats_S -bias=master_bias.fit
+stack pp_flats_S mean w 3.000 3.000 -norm=mul -out=master_flat_S
+cd ".."
+
+# --- Hydrogène (H)
+cd "H/flats"
+convert flats_H -out=../../x_temp
+cd "../../x_temp"
+calibrate flats_H -bias=master_bias.fit
+stack pp_flats_H mean w 3.000 3.000 -norm=mul -out=master_flat_H
+cd ".."
+
+# --- Oxygène (O)
+cd "O/flats"
+convert flats_O -out=../../x_temp
+cd "../../x_temp"
+calibrate flats_O -bias=master_bias.fit
+stack pp_flats_O mean w 3.000 3.000 -norm=mul -out=master_flat_O
+cd ".."
+
+################################################################################
+# -----------------------------
+# Étape 3 : Traitement des lights
+
+# === HYDROGÈNE (H)
+cd "H"
+convert lights_H -out=../x_temp
+cd "../x_temp"
+calibrate lights_H -dark=master_dark.fit -flat=master_flat_H
+setfindstar -sigma=1.0 -roundness=0.50 -radius=5.0 -convergence=1.00 -gaussian -relax=off -minA=0.00 -maxA=1.00
+seqsubsky pp_lights_H 1 -samples=20 -tolerance=2.00
+register bkg_pp_lights_H -2pass -transf=homography -interp=la -noclamp -minpairs=10 -maxstars=2000
+seqapplyreg bkg_pp_lights_H -framing=cog -interp=la
+stack r_bkg_pp_lights_H mean w 3.00 3.000 -norm=addscale -filter-fwhm=9 -out=../HA
+cd ".."
+
+# === SOUFRE (S)
+cd "S"
+convert lights_S -out=../x_temp
+cd "../x_temp"
+calibrate lights_S -dark=master_dark.fit -flat=master_flat_S
+setfindstar -sigma=1.0 -roundness=0.50 -radius=5.0 -convergence=1.00 -gaussian -relax=off -minA=0.00 -maxA=1.00
+seqsubsky pp_lights_S 1 -samples=20 -tolerance=2.00
+register bkg_pp_lights_S -2pass -transf=homography -interp=la -noclamp -minpairs=10 -maxstars=2000
+seqapplyreg bkg_pp_lights_S -framing=cog -interp=la
+stack r_bkg_pp_lights_S mean w 3.00 3.000 -norm=addscale -filter-fwhm=9 -out=../SII
+cd ".."
+
+# === OXYGÈNE (O) -> C05 (aligné sur H)
+cd "O"
+convert lights_O -out=../x_temp
+cd "../x_temp"
+calibrate lights_O -dark=master_dark.fit -flat=master_flat_O
+setfindstar -sigma=1.0 -roundness=0.50 -radius=5.0 -convergence=1.00 -gaussian -relax=off -minA=0.00 -maxA=1.00
+seqsubsky pp_lights_O 1 -samples=20 -tolerance=2.00
+register bkg_pp_lights_O -2pass -transf=homography -interp=la -noclamp -minpairs=10 -maxstars=2000
+seqapplyreg bkg_pp_lights_O -framing=cog -interp=la
+stack r_bkg_pp_lights_O mean w 3.00 3.000 -norm=addscale -filter-fwhm=9 -out=../OIII
+cd ".."
+
+# === LUMINANCE (L)
+cd "L"
+convert lights_L -out=../x_temp
+cd "../x_temp"
+calibrate lights_L -dark=master_dark.fit -flat=master_flat_L
+setfindstar -sigma=1.0 -roundness=0.50 -radius=5.0 -convergence=1.00 -gaussian -relax=off -minA=0.00 -maxA=1.00
+seqsubsky pp_lights_L 1 -samples=20 -tolerance=2.00
+register bkg_pp_lights_L -2pass -transf=homography -interp=la -noclamp -minpairs=10 -maxstars=2000
+seqapplyreg bkg_pp_lights_L -framing=cog -interp=la
+stack r_bkg_pp_lights_L mean w 3.00 3.000 -norm=addscale -filter-fwhm=9 -out=../couche_L
+
+################################################################################
+close

@@ -1,0 +1,120 @@
+################################################################################
+# Script Sirilic - Traitement LRGB avec master bias et master dark commun
+requires 1.4.0-beta4
+
+# Répertoire de travail principal
+cd "C:/Users/yoye_/Pictures/Astrophoto/Traitement"
+
+# Paramètres généraux
+set16bits
+setcompress 0
+setext fit
+setfindstar reset
+
+################################################################################
+# -----------------------------
+# Étape 0 : Création du Master Dark
+cd "darks"
+convert darks -out=../x_temp
+cd ".."
+cd "x_temp"
+stack darks mean w 3.000 3.000 -nonorm -out=../x_temp/master_dark.fit
+cd ".."
+
+# Étape 1 : Création du Master Bias
+cd "biases"
+convert biases -out=../x_temp
+cd ".."
+cd "x_temp"
+stack biases mean w 3.000 3.000 -nonorm -out=../x_temp/master_bias.fit
+cd ".."
+
+################################################################################
+# -----------------------------
+# Étape 2 : Traitement des flats
+
+# --- Luminance (L)
+cd "L/flats"
+convert flats_L -out=../../x_temp
+cd "../../x_temp"
+calibrate flats_L -bias=master_bias.fit
+stack pp_flats_L mean w 3.000 3.000 -norm=mul -out=master_flat_L
+cd ".."
+
+# --- Rouge (R)
+cd "R/flats"
+convert flats_R -out=../../x_temp
+cd "../../x_temp"
+calibrate flats_R -bias=master_bias.fit
+stack pp_flats_R mean w 3.000 3.000 -norm=mul -out=master_flat_R
+cd ".."
+
+# --- Vert (G)
+cd "G/flats"
+convert flats_G -out=../../x_temp
+cd "../../x_temp"
+calibrate flats_G -bias=master_bias.fit
+stack pp_flats_G mean w 3.000 3.000 -norm=mul -out=master_flat_G
+cd ".."
+
+# --- Bleu (B)
+cd "B/flats"
+convert flats_B -out=../../x_temp
+cd "../../x_temp"
+calibrate flats_B -bias=master_bias.fit
+stack pp_flats_B mean w 3.000 3.000 -norm=mul -out=master_flat_B
+cd ".."
+
+################################################################################
+# -----------------------------
+# Étape 3 : Traitement des lights
+
+# === ROUGE (R)
+cd "R"
+convert lights_R -out=../x_temp
+cd "../x_temp"
+calibrate lights_R -dark=master_dark.fit -flat=master_flat_R
+setfindstar -sigma=1.0 -roundness=0.50 -radius=5.0 -convergence=1.00 -gaussian -relax=off -minA=0.00 -maxA=1.00
+seqsubsky pp_lights_R 1 -samples=20 -tolerance=2.00
+register bkg_pp_lights_R -2pass -transf=homography -interp=la -noclamp -minpairs=10 -maxstars=2000
+seqapplyreg bkg_pp_lights_R -framing=cog -interp=la
+stack r_bkg_pp_lights_R mean w 3.00 3.000 -norm=addscale -filter-fwhm=5 -out=../couche_R
+cd ".."
+
+# === VERT (G)
+cd "G"
+convert lights_G -out=../x_temp
+cd "../x_temp"
+calibrate lights_G -dark=master_dark.fit -flat=master_flat_G
+setfindstar -sigma=1.0 -roundness=0.50 -radius=5.0 -convergence=1.00 -gaussian -relax=off -minA=0.00 -maxA=1.00
+seqsubsky pp_lights_G 1 -samples=20 -tolerance=2.00
+register bkg_pp_lights_G -2pass -transf=homography -interp=la -noclamp -minpairs=10 -maxstars=2000
+seqapplyreg bkg_pp_lights_G -framing=cog -interp=la
+stack r_bkg_pp_lights_G mean w 3.00 3.000 -norm=addscale -filter-fwhm=5 -out=../couche_G
+cd ".."
+
+# === BLEU (B)
+cd "B"
+convert lights_B -out=../x_temp
+cd "../x_temp"
+calibrate lights_B -dark=master_dark.fit -flat=master_flat_B
+setfindstar -sigma=1.0 -roundness=0.50 -radius=5.0 -convergence=1.00 -gaussian -relax=off -minA=0.00 -maxA=1.00
+seqsubsky pp_lights_B 1 -samples=20 -tolerance=2.00
+register bkg_pp_lights_B -2pass -transf=homography -interp=la -noclamp -minpairs=10 -maxstars=2000
+seqapplyreg bkg_pp_lights_B -framing=cog -interp=la
+stack r_bkg_pp_lights_B mean w 3.00 3.000 -norm=addscale -filter-fwhm=5 -out=../couche_B
+cd ".."
+
+# === LUMINANCE (L)
+cd "L"
+convert lights_L -out=../x_temp
+cd "../x_temp"
+calibrate lights_L -dark=master_dark.fit -flat=master_flat_L
+setfindstar -sigma=1.0 -roundness=0.50 -radius=5.0 -convergence=1.00 -gaussian -relax=off -minA=0.00 -maxA=1.00
+seqsubsky pp_lights_L 1 -samples=20 -tolerance=2.00
+register bkg_pp_lights_L -2pass -transf=homography -interp=la -noclamp -minpairs=10 -maxstars=2000
+seqapplyreg bkg_pp_lights_L -framing=cog -interp=la
+stack r_bkg_pp_lights_L mean w 3.00 3.000 -norm=addscale -filter-fwhm=5 -out=../couche_L
+
+################################################################################
+close

@@ -5,8 +5,13 @@ from core.fits_loader import find_fits
 from core.preview import fits_preview
 from core.reject import reject_file
 from core.config import load_config
+from core.fits_metadata import get_fits_metadata
 
 from streamlit_shortcuts import shortcut_button
+
+from ui.theme import load_theme
+from ui.sidebar import show_sidebar
+
 
 
 # ==========================
@@ -20,7 +25,25 @@ st.set_page_config(
 )
 
 
-st.title("🔭 Preview Lights")
+
+# ==========================
+# Thème + Sidebar
+# ==========================
+
+load_theme()
+
+show_sidebar()
+
+
+
+# ==========================
+# Titre
+# ==========================
+
+st.title(
+    "🔭 Preview Lights"
+)
+
 
 
 # ==========================
@@ -35,6 +58,7 @@ if "rejected_folder" not in st.session_state:
         "rejected_folder",
         ""
     )
+
 
 
 # ==========================
@@ -96,7 +120,7 @@ if "last_action_time" not in st.session_state:
 
 
 # ==========================
-# Anti répétition
+# Anti répétition clavier
 # ==========================
 
 def can_execute(delay=0.3):
@@ -142,7 +166,6 @@ if st.session_state.get(
     "reject_requested",
     False
 ):
-
 
     reject_file(
         current,
@@ -279,7 +302,7 @@ with nav2:
 
 
 # ==========================
-# Image
+# Image + Métadonnées
 # ==========================
 
 image = fits_preview(
@@ -290,10 +313,70 @@ image = fits_preview(
 
 if image:
 
-    st.image(
-        image,
-        width=800
+
+    col_img, col_meta = st.columns(
+        [3,1]
     )
+
+
+
+    with col_img:
+
+
+        st.image(
+            image,
+            width=800
+        )
+
+
+
+    with col_meta:
+
+
+        st.subheader(
+            "📋 FITS"
+        )
+
+
+        metadata = get_fits_metadata(
+            current
+        )
+
+
+
+        if metadata:
+
+
+            st.markdown(
+                """
+                <div style="
+                background: rgba(0,0,0,0.25);
+                padding:12px;
+                border-radius:12px;
+                ">
+                """,
+                unsafe_allow_html=True
+            )
+
+
+            for key, value in metadata.items():
+
+                st.markdown(
+                    f"**{key} :** {value}"
+                )
+
+
+            st.markdown(
+                "</div>",
+                unsafe_allow_html=True
+            )
+
+
+        else:
+
+            st.info(
+                "Aucune métadonnée"
+            )
 
 
 
@@ -302,6 +385,7 @@ if image:
 # ==========================
 
 st.divider()
+
 
 
 if st.button(
@@ -314,7 +398,7 @@ if st.button(
 
 
 # ==========================
-# Infos
+# Informations
 # ==========================
 
 info1, info2 = st.columns(2)

@@ -1,0 +1,17 @@
+################################################################################
+# Script Sirilic - Génération du fichier log pour les lights (SHO ou LRGB)
+requires 1.4.0-beta4
+# Répertoire de travail principal
+cd "C:/Users/yoye_/Pictures/Astrophoto/Traitement/Lights"
+# Paramètres généraux
+set16bits
+setcompress 0
+setext fit
+setfindstar reset
+################################################################################
+# Conversion des fichiers lights vers x_temp et génération du log
+convert lights -out=../x_temp
+# Fermeture propre
+setfindstar reset
+close
+################################################################################

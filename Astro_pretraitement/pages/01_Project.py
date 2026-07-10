@@ -4,11 +4,49 @@ from pathlib import Path
 from core.config import load_config, save_config
 from core.reject import clear_rejected_folder
 
+from ui.theme import load_theme
+from ui.sidebar import show_sidebar
 
-st.title("📁 Projet")
 
+
+# ==========================
+# Configuration Streamlit
+# ==========================
+
+st.set_page_config(
+    page_title="Projet Astro",
+    page_icon="📁",
+    layout="wide"
+)
+
+
+
+# ==========================
+# Thème + Sidebar
+# ==========================
+
+load_theme()
+
+show_sidebar()
+
+
+
+# ==========================
+# Titre
+# ==========================
+
+st.title(
+    "📁 Projet"
+)
+
+
+
+# ==========================
+# Chargement configuration
+# ==========================
 
 config = load_config()
+
 
 
 lights_current = config.get(
@@ -16,16 +54,24 @@ lights_current = config.get(
     ""
 )
 
+
+
 rejected_current = config.get(
     "rejected_folder",
     ""
 )
 
 
+
+# ==========================
+# Configuration dossiers
+# ==========================
+
 lights_folder = st.text_input(
     "📷 Dossier des Lights",
     value=lights_current
 )
+
 
 
 rejected_folder = st.text_input(
@@ -35,20 +81,37 @@ rejected_folder = st.text_input(
 
 
 
-if st.button("💾 Enregistrer configuration"):
+# ==========================
+# Sauvegarde
+# ==========================
 
-    lights_path = Path(lights_folder)
-    rejected_path = Path(rejected_folder)
+if st.button(
+    "💾 Enregistrer configuration",
+    use_container_width=True
+):
+
+
+    lights_path = Path(
+        lights_folder
+    )
+
+
+    rejected_path = Path(
+        rejected_folder
+    )
+
 
 
     if not lights_path.exists():
 
         st.error(
-            "Le dossier Lights n'existe pas"
+            "❌ Le dossier Lights n'existe pas"
         )
 
 
+
     else:
+
 
         if not rejected_path.exists():
 
@@ -58,32 +121,52 @@ if st.button("💾 Enregistrer configuration"):
             )
 
 
+
         config["lights_folder"] = lights_folder
+
         config["rejected_folder"] = rejected_folder
 
 
-        save_config(config)
 
-
-        st.session_state["lights_folder"] = lights_folder
-        st.session_state["rejected_folder"] = rejected_folder
-
-
-        st.success(
-            "Configuration sauvegardée"
+        save_config(
+            config
         )
 
 
 
+        st.session_state["lights_folder"] = lights_folder
+
+        st.session_state["rejected_folder"] = rejected_folder
+
+
+
+        st.success(
+            "✅ Configuration sauvegardée"
+        )
+
+
+
+# ==========================
+# Gestion rejets
+# ==========================
+
 st.divider()
 
 
-st.subheader("🧹 Gestion des rejets")
+
+st.subheader(
+    "🧹 Gestion des rejets"
+)
+
 
 
 if rejected_folder:
 
-    rejected_path = Path(rejected_folder)
+
+    rejected_path = Path(
+        rejected_folder
+    )
+
 
 
     if rejected_path.exists():
@@ -106,14 +189,22 @@ if rejected_folder:
 
         if st.session_state.confirm_clear_rejected:
 
+
             st.warning(
-                "⚠️ Attention : cette action va supprimer définitivement "
-                "tout le contenu du dossier des rejets.\n\n"
-                "Êtes-vous certain de vouloir continuer ?"
+                """
+⚠️ Attention :
+
+Cette action va supprimer définitivement
+tout le contenu du dossier des rejets.
+
+Êtes-vous certain de vouloir continuer ?
+"""
             )
 
 
+
             col1, col2 = st.columns(2)
+
 
 
             with col1:
@@ -123,17 +214,21 @@ if rejected_folder:
                     use_container_width=True
                 ):
 
+
                     clear_rejected_folder(
                         rejected_folder
                     )
 
 
+
                     st.session_state.confirm_clear_rejected = False
 
 
+
                     st.success(
-                        "Le dossier des rejets a été vidé"
+                        "✅ Le dossier des rejets a été vidé"
                     )
+
 
 
                     st.rerun()
@@ -142,25 +237,32 @@ if rejected_folder:
 
             with col2:
 
+
                 if st.button(
                     "❌ Annuler",
                     use_container_width=True
                 ):
 
+
                     st.session_state.confirm_clear_rejected = False
+
 
                     st.rerun()
 
 
+
     else:
 
+
         st.info(
-            "Le dossier des rejets n'existe pas encore"
+            "ℹ️ Le dossier des rejets n'existe pas encore"
         )
+
 
 
 else:
 
+
     st.info(
-        "Choisissez un dossier de rejets"
+        "ℹ️ Choisissez un dossier de rejets"
     )

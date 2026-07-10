@@ -1,0 +1,327 @@
+/* =========================
+   MENU STREAMLIT NATIF
+========================= */
+
+[data-testid="stSidebarNav"] {
+    display: none;
+}
+
+
+/* =========================
+   APP BACKGROUND
+========================= */
+
+.stApp {
+
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+
+}
+
+
+
+/* =========================
+   SIDEBAR GLASS EFFECT
+========================= */
+
+section[data-testid="stSidebar"] {
+
+    background:
+    rgba(15,18,30,0.35);
+
+    backdrop-filter:
+    blur(15px);
+
+    border-right:
+    1px solid rgba(255,255,255,0.12);
+
+}
+
+
+
+section[data-testid="stSidebar"] > div {
+
+    background:
+    transparent;
+
+}
+
+
+
+/* =========================
+   MAIN CONTAINER GLASS
+========================= */
+
+
+div.block-container {
+
+    background:
+    rgba(15,18,30,0.35);
+
+
+    backdrop-filter:
+    blur(8px);
+
+
+    border-radius:
+    20px;
+
+
+    padding:
+    1.5rem;
+
+
+    margin-top:
+    1rem;
+
+
+    margin-bottom:
+    1rem;
+
+
+    border:
+    1px solid rgba(255,255,255,0.08);
+
+}
+
+
+
+/* =========================
+   TEXT STYLE
+========================= */
+
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+
+    color:
+    white !important;
+
+}
+
+
+
+p,
+label {
+
+    color:
+    #ECECEC;
+
+}
+
+
+
+/* =========================
+   BUTTONS
+========================= */
+
+
+.stButton > button {
+
+
+    background:
+    rgba(80,120,255,0.25);
+
+
+    color:
+    white;
+
+
+    border-radius:
+    12px;
+
+
+    border:
+    1px solid rgba(255,255,255,0.25);
+
+
+    transition:
+    0.2s;
+
+}
+
+
+
+.stButton > button:hover {
+
+
+    background:
+    rgba(80,120,255,0.55);
+
+
+    transform:
+    scale(1.02);
+
+}
+
+
+
+/* =========================
+   METRICS
+========================= */
+
+
+[data-testid="stMetric"] {
+
+
+    background:
+    rgba(0,0,0,0.25);
+
+
+    padding:
+    12px;
+
+
+    border-radius:
+    12px;
+
+
+    border:
+    1px solid rgba(255,255,255,0.12);
+
+}
+
+
+
+[data-testid="stMetricValue"] {
+
+    color:
+    white;
+
+}
+
+
+
+/* =========================
+   COMPACT UI
+========================= */
+
+
+.block-container {
+
+    padding-top:
+    0.5rem;
+
+    padding-bottom:
+    1rem;
+
+}
+
+
+
+/* =========================
+   WORKFLOW BOX
+========================= */
+
+
+.workflow {
+
+    background:
+    rgba(15,23,42,0.92);
+
+
+    color:
+    #f8fafc;
+
+
+    padding:
+    25px;
+
+
+    border-radius:
+    15px;
+
+
+    border-left:
+    6px solid #38bdf8;
+
+
+    box-shadow:
+    0 8px 25px rgba(0,0,0,0.5);
+
+
+    margin-top:
+    15px;
+
+}
+
+
+
+.workflow h3 {
+
+    color:
+    #38bdf8 !important;
+
+}
+
+
+
+.workflow li {
+
+    color:
+    #f8fafc !important;
+
+
+    margin-bottom:
+    12px;
+
+}
+
+
+
+.workflow b {
+
+    color:
+    #facc15 !important;
+
+}
+
+
+
+/* =========================
+   TERMINAL SIRIL
+========================= */
+
+
+.stCode {
+
+    background:
+    rgba(0,0,0,0.85);
+
+
+    border-radius:
+    12px;
+
+
+    border:
+    1px solid rgba(255,255,255,0.15);
+
+}
+
+
+
+.stCode code {
+
+    color:
+    #00ff88 !important;
+
+
+    font-family:
+    "Consolas",
+    "Courier New",
+    monospace;
+
+
+    font-size:
+    0.85rem;
+
+
+    line-height:
+    1.4;
+
+}
