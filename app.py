@@ -10,9 +10,8 @@ from ui.pages.preprocessing import show_preprocessing
 from tools.sho_mixer import sho_mixer
 
 from ui.pages.sho_lab import show_sho_lab
-from ui.pages.aucune_luminance import show_aucune_luminance
-from ui.pages.external_luminance import show_external_luminance
-from ui.pages.LRGB_luminance import show_lrgb_luminance
+
+
 
 # ─────────────────────────────────────
 # CONFIG STREAMLIT
@@ -28,7 +27,7 @@ st.set_page_config(
 
 
 # ─────────────────────────────────────
-# CSS + BACKGROUND
+# CSS
 # ─────────────────────────────────────
 
 def load_css():
@@ -47,6 +46,10 @@ def load_css():
         )
 
 
+
+# ─────────────────────────────────────
+# BACKGROUND
+# ─────────────────────────────────────
 
 def set_background():
 
@@ -78,7 +81,6 @@ def set_background():
                 "data:image/png;base64,{encoded}"
                 );
 
-
                 background-size:cover;
                 background-position:center;
                 background-attachment:fixed;
@@ -94,7 +96,7 @@ def set_background():
 
 
 # ─────────────────────────────────────
-# INITIALISATION WORKFLOW
+# SESSION STATE
 # ─────────────────────────────────────
 
 def init_state():
@@ -102,34 +104,59 @@ def init_state():
     defaults = {
 
 
-        # étape workflow
+        # workflow
 
         "workflow_step": 0,
+
 
 
         # projet
 
         "workdir": None,
 
-        "siril": None,
+        "siril_cli": None,
+
+        "siril_gui": None,
 
         "config": None,
 
 
 
-        # SHO
+        # SHO source
 
-        "palette": None,
+        "S": None,
+
+        "H": None,
+
+        "O": None,
+
+
+
+        # RGB généré
+
+        "R": None,
+
+        "G": None,
+
+        "B": None,
+
 
         "rgb_ready": False,
 
 
-        # luminance
+        "palette": None,
+
+
+
+        # luminance SHO Lab
 
         "luminance_mode": None,
 
+        "L": None,
 
-        # résultats
+
+
+        # résultats finaux
 
         "R_final": None,
 
@@ -137,8 +164,15 @@ def init_state():
 
         "B_final": None,
 
+        "RGB_final": None,
+
+
+        # sécurité
+
+        "siril_opened": False,
 
     }
+
 
 
     for key, value in defaults.items():
@@ -151,7 +185,7 @@ def init_state():
 
 
 # ─────────────────────────────────────
-# INIT APPLICATION
+# INITIALISATION
 # ─────────────────────────────────────
 
 init_state()
@@ -171,13 +205,10 @@ step = sidebar()
 
 
 # ─────────────────────────────────────
-# ROUTING WORKFLOW
+# WORKFLOW
 # ─────────────────────────────────────
 
-
 if step == 0:
-
-    # Projet
 
     show_project()
 
@@ -185,15 +216,11 @@ if step == 0:
 
 elif step == 1:
 
-    # Prétraitement Siril
-
     show_preprocessing()
 
 
 
 elif step == 2:
-
-    # Palette SHO
 
     sho_mixer()
 
@@ -201,30 +228,7 @@ elif step == 2:
 
 elif step == 3:
 
-    # Luminance
-
     show_sho_lab()
-
-
-
-elif step == 4:
-
-    # Branche sans luminance
-
-    show_aucune_luminance()
-
-
-
-elif step == 5:
-
-    # Branche luminance externe
-
-    show_external_luminance()
-
-
-
-elif step == 6:
-    show_lrgb_luminance()
 
 
 

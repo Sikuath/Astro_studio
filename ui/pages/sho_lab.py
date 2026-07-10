@@ -1,4 +1,5 @@
 import streamlit as st
+from pathlib import Path
 
 from tools.sho_lab import (
     make_luminance,
@@ -6,6 +7,12 @@ from tools.sho_lab import (
 )
 
 from core.preview import make_preview
+
+from core.rgb_export import (
+    save_rgb_final,
+    open_with_siril
+)
+
 
 
 # ─────────────────────────────────
@@ -15,6 +22,7 @@ from core.preview import make_preview
 def show_sho_lab():
 
     st.title("✨ SHO Lab")
+
 
 
     # ─────────────────────────────
@@ -27,7 +35,8 @@ def show_sho_lab():
         "B",
         "S",
         "H",
-        "O"
+        "O",
+        "workdir"
     ]
 
 
@@ -44,15 +53,19 @@ def show_sho_lab():
 
 
 
-    # récupération données
-
     R = st.session_state.R
     G = st.session_state.G
     B = st.session_state.B
 
+
     S = st.session_state.S
     H = st.session_state.H
     O = st.session_state.O
+
+
+    workdir = Path(
+        st.session_state.workdir
+    )
 
 
 
@@ -67,9 +80,7 @@ def show_sho_lab():
 
 
 
-    # valeurs par défaut
-
-    mode = "Ha"
+    mode = "Aucune"
 
     coeffs = (
         0.25,
@@ -78,13 +89,14 @@ def show_sho_lab():
     )
 
     strength = 1.0
+
     stretch = 3.0
 
 
 
-    # =====================================================
-    # COLONNE GAUCHE
-    # =====================================================
+    # =================================================
+    # CONTROLES
+    # =================================================
 
     with left:
 
@@ -95,67 +107,50 @@ def show_sho_lab():
 
 
         mode = st.radio(
-            "Choisir le type de Luminance",
+
+            "Choisir la luminance",
+
             [
                 "Aucune",
                 "Ha",
-                "SHO synthétique",
-                "L externe"
+                "SHO synthétique"
             ],
-            index=1
+
+            index=0
+
         )
 
 
-
-        # -------------------------
-        # Informations
-        # -------------------------
 
         if mode == "Aucune":
 
             st.info(
                 """
-                Aucune luminance.
+                Aucun ajout de luminance.
 
-                Les couches RGB seront envoyées
-                directement vers Siril pour une
-                recomposition couleur.
+                Le RGB SHO sera exporté directement.
                 """
             )
 
-
-        elif mode == "L externe":
-
-            st.info(
-                """
-                Une luminance externe est nécessaire pour faire une recomposition classique
-                dans Siril. Les trois couches RVB seront enregistrées dans le dossier de travail.
-                """
-            )
 
         elif mode == "Ha":
 
             st.info(
                 """
-                Une luminance fabriquée automatiquement à l'aide de la couche H-alpha puis
-                les couches RVB seront envoyées directement vers Siril pour une
-                recomposition couleur.
+                H-alpha utilisée comme luminance.
                 """
             )
-        
+
+
         elif mode == "SHO synthétique":
 
             st.info(
                 """
-                Une luminance fabriquée manuellement à l'aide des trois couches SHO, puis
-                les couches RVB seront envoyées directement vers Siril pour une
-                recomposition couleur.
+                Luminance créée à partir du mélange SHO.
                 """
             )
 
-        # -------------------------
-        # Curseurs SHO
-        # -------------------------
+
 
         if mode == "SHO synthétique":
 
@@ -197,10 +192,6 @@ def show_sho_lab():
 
 
 
-        st.divider()
-
-
-
         strength = st.slider(
             "Force luminance",
             0.0,
@@ -210,31 +201,24 @@ def show_sho_lab():
 
 
         stretch = st.slider(
-            "Stretch",
+            "Stretch preview",
             0.5,
             10.0,
             3.0
         )
 
 
-        st.divider()
-
-
 
         # =================================================
-        # CALCUL AVANT VALIDATION
+        # CALCUL
         # =================================================
 
-        L = None
-        R2 = R
-        G2 = G
-        B2 = B
+        R_final = R
+        G_final = G
+        B_final = B
 
 
-        if mode not in [
-            "Aucune",
-            "L externe"
-        ]:
+        if mode != "Aucune":
 
 
             L = make_luminance(
@@ -246,7 +230,7 @@ def show_sho_lab():
             )
 
 
-            R2, G2, B2 = apply_luminance(
+            R_final, G_final, B_final = apply_luminance(
                 R,
                 G,
                 B,
@@ -256,85 +240,213 @@ def show_sho_lab():
 
 
 
+        st.divider()
+
+
+
         # =================================================
-        # VALIDATION
+        # EXPORT + SIRIL
         # =================================================
 
         if st.button(
-            "➡ Valider le traitement luminance"
+            "💾 Générer RGB_final.fit et ouvrir Siril"
         ):
 
 
-            # -------------------------
-            # RGB direct
-            # -------------------------
-
-            if mode == "Aucune":
-
-                st.session_state.workflow_step = 4
-                st.session_state.luminance_mode = mode
-
-                st.rerun()
+            with st.spinner(
+                "Création RGB_final.fit..."
+            ):
 
 
-
-            # -------------------------
-            # L externe
-            # -------------------------
-
-            elif mode == "L externe":
-
-                st.session_state.workflow_step = 5
-                st.session_state.luminance_mode = mode
-
-                st.rerun()
+                image_finale = save_rgb_final(
+                    R_final,
+                    G_final,
+                    B_final,
+                    workdir
+                )
 
 
 
-            # -------------------------
-            # L Python
-            # -------------------------
-
-            else:
-
-
-                st.session_state.R_lrgb = R2
-                st.session_state.G_lrgb = G2
-                st.session_state.B_lrgb = B2
-
-                st.session_state.L_lrgb = L
-
-                st.session_state.luminance_mode = mode
-
-
-                st.session_state.workflow_step = 6
-
-
-                st.rerun()
+            st.success(
+                f"RGB_final.fit créé ✔\n\n{image_finale}"
+            )
 
 
 
-    # =====================================================
+            # sauvegarde session
+
+            st.session_state.R_final = R_final
+            st.session_state.G_final = G_final
+            st.session_state.B_final = B_final
+
+            st.session_state.luminance_mode = mode
+
+
+
+            # =========================
+            # OUVERTURE SIRIL GUI
+            # =========================
+
+            try:
+
+
+                siril_gui = st.session_state.get(
+                    "siril_gui"
+                )
+
+
+                if not siril_gui:
+
+                    raise Exception(
+                        "siril_gui absent de la configuration"
+                    )
+
+
+
+                siril_exe = Path(
+                    siril_gui
+                )
+
+
+
+                if not siril_exe.exists():
+
+                    raise FileNotFoundError(
+                        siril_exe
+                    )
+
+
+
+                # =====================
+                # VERROU ANTI DOUBLE
+                # =====================
+
+                if st.session_state.get(
+                    "siril_opened",
+                    False
+                ):
+
+
+                    st.info(
+                        "Siril est déjà ouvert pour cette image."
+                    )
+
+
+                else:
+
+
+                    open_with_siril(
+                        image_finale,
+                        siril_exe
+                    )
+
+
+                    st.session_state.siril_opened = True
+
+
+                    st.success(
+                        "Siril ouvert avec RGB_final.fit ✔"
+                    )
+
+
+
+            except Exception as e:
+
+
+                st.error(
+                    f"Impossible d'ouvrir Siril graphique : {e}"
+                )
+
+
+
+    # =================================================
     # PREVIEW
-    # =====================================================
+    # =================================================
 
     with right:
 
 
         st.subheader(
-            "👁 Résultat SHO Lab"
+            "👁 Résultat"
         )
 
 
         RGB = make_preview(
-            R2,
-            G2,
-            B2,
+            R_final,
+            G_final,
+            B_final,
             stretch
         )
 
 
         st.image(
             RGB,
-            use_container_width=True
+            width="stretch"
         )
+
+
+
+    # =================================================
+    # NAVIGATION
+    # =================================================
+
+    st.divider()
+
+
+    col1, col2 = st.columns(2)
+
+
+
+    with col1:
+
+
+        if st.button(
+            "⬅ Retour SHO Mixer"
+        ):
+
+
+            st.session_state.workflow_step = 2
+
+
+            st.session_state.pop(
+                "siril_opened",
+                None
+            )
+
+
+            st.rerun()
+
+
+
+    with col2:
+
+
+        if st.button(
+            "❌ Quitter"
+        ):
+
+
+            st.session_state.workflow_step = 0
+
+
+            for key in [
+                "R_final",
+                "G_final",
+                "B_final",
+                "luminance_mode",
+                "siril_opened"
+            ]:
+
+
+                st.session_state.pop(
+                    key,
+                    None
+                )
+
+
+            st.success(
+                "Retour accueil"
+            )
+
+
+            st.rerun()

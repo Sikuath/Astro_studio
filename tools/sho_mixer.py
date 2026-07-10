@@ -5,6 +5,8 @@ from pathlib import Path
 from core.fits_io import load_fits
 from core.processing import mix_sho, apply_palette
 from core.preview import make_preview
+from core.rgb_export import save_rgb_channels
+
 
 
 # ─────────────────────────────────────
@@ -47,12 +49,15 @@ def sho_mixer():
         return
 
 
+
     path = Path(workdir)
+
 
 
     S_path = path / "SII_linear.fit"
     H_path = path / "HA_linear.fit"
     O_path = path / "OIII_linear.fit"
+
 
 
     if not (
@@ -70,7 +75,7 @@ def sho_mixer():
 
 
     # =========================
-    # CHARGEMENT DONNEES
+    # CHARGEMENT
     # =========================
 
     S, H, O = load_sho_data(
@@ -82,18 +87,21 @@ def sho_mixer():
 
 
     # =========================
-    # INITIALISATION ETAT
+    # ETAT SESSION
     # =========================
 
     if "sho_palette" not in st.session_state:
+
         st.session_state.sho_palette = "Hubble SHO"
 
 
     if "sho_stretch" not in st.session_state:
+
         st.session_state.sho_stretch = 3.0
 
 
     if "sho_zoom" not in st.session_state:
+
         st.session_state.sho_zoom = 1.0
 
 
@@ -120,10 +128,6 @@ def sho_mixer():
 
 
 
-        # -------------------------
-        # PALETTE
-        # -------------------------
-
         palette = st.selectbox(
 
             "Choisir une palette SHO",
@@ -143,150 +147,78 @@ def sho_mixer():
             key="sho_palette"
         )
 
-        # -------------------------
-        # DESCRIPTION PALETTE
-        # -------------------------
-
-        if palette == "Manual":
-
-            st.info(
-                """
-                Palette personnalisée.
-
-                Permet de régler manuellement la contribution
-                de chaque couche SHO dans les canaux RVB.
-
-                Idéal pour créer votre propre rendu.
-                """
-            )
 
 
-        elif palette == "Hubble SHO":
+        descriptions = {
 
-            st.info(
-                """
-                Palette Hubble SHO classique.
+            "Manual":
+            """
+            Palette personnalisée.
 
-                SII → Rouge  
-                Ha → Vert  
-                OIII → Bleu  
+            Réglage manuel SII / Ha / OIII.
+            """,
 
-                C'est la palette utilisée par les images
-                emblématiques du télescope Hubble.
-                Elle met en évidence les différences
-                de composition des nébuleuses.
-                """
-            )
+            "Hubble SHO":
+            """
+            Palette SHO classique.
 
+            SII → Rouge
+            Ha → Vert
+            OIII → Bleu
+            """,
 
-        elif palette == "HOO Boost":
+            "HOO Boost":
+            """
+            Palette HOO renforcée.
 
-            st.info(
-                """
-                Palette HOO renforcée.
+            Ha + OIII dominants.
+            """,
 
-                Ha et OIII dominent la composition.
+            "HOO Natural":
+            """
+            Palette HOO naturelle.
 
-                Donne des images très contrastées avec
-                des zones Ha rouges/orangées et des zones
-                OIII bleues/cyan.
+            Ha rouge,
+            OIII cyan/bleu.
+            """,
 
-                Très adaptée aux nébuleuses en émission.
-                """
-            )
+            "Hα Rich":
+            """
+            Accentuation du H-alpha.
+            """,
 
+            "OIII Rich":
+            """
+            Accentuation de l'OIII.
+            """,
 
-        elif palette == "HOO Natural":
+            "Foraxx Pro":
+            """
+            Palette avancée inspirée Foraxx.
+            """,
 
-            st.info(
-                """
-                Palette HOO naturelle.
+            "Gold & Blue":
+            """
+            Palette artistique chaud/froid.
+            """,
 
-                Utilise principalement :
-                
-                Ha → Rouge
-                OIII → Vert et Bleu
-
-                Elle produit un rendu proche des couleurs
-                naturelles tout en conservant le contraste
-                des images SHO.
-                """
-            )
-
-
-        elif palette == "Hα Rich":
-
-            st.info(
-                """
-                Palette dominée par le H-alpha.
-
-                Renforce les structures d'hydrogène ionisé.
-
-                Idéal pour les nébuleuses riches en Ha
-                comme les régions d'émission.
-                """
-            )
+            "Teal & Orange":
+            """
+            Palette artistique cyan/orange.
+            """
+        }
 
 
-        elif palette == "OIII Rich":
 
-            st.info(
-                """
-                Palette mettant en avant l'OIII.
-
-                Accentue les zones riches en oxygène ionisé.
-
-                Permet de faire ressortir les structures
-                bleues/cyan des nébuleuses.
-                """
-            )
+        st.info(
+            descriptions[palette]
+        )
 
 
-        elif palette == "Foraxx Pro":
 
-            st.info(
-                """
-                Palette inspirée de la méthode Foraxx.
-
-                Cherche à préserver les couleurs naturelles
-                des différentes couches tout en améliorant
-                la séparation des structures.
-
-                Très utilisée en traitement SHO avancé.
-                """
-            )
-
-
-        elif palette == "Gold & Blue":
-
-            st.info(
-                """
-                Palette artistique Gold & Blue.
-
-                Produit un contraste chaud/froid :
-
-                - tons dorés pour les régions Ha/SII
-                - tons bleus pour l'OIII
-
-                Très esthétique pour les présentations.
-                """
-            )
-
-
-        elif palette == "Teal & Orange":
-
-            st.info(
-                """
-                Palette artistique Teal & Orange.
-
-                Accentue le contraste entre :
-
-                - cyan/bleu pour l'OIII
-                - orange pour l'hydrogène
-
-                Donne un rendu moderne et très lisible.
-                """
-            )
+        # =========================
+        # REGLAGES
+        # =========================
 
         if palette == "Manual":
 
@@ -295,26 +227,23 @@ def sho_mixer():
                 "R SII",
                 0.0,
                 1.0,
-                0.8,
-                key="sho_r_s"
+                0.8
             )
 
 
             r_h = st.slider(
-                "R Hα",
+                "R Ha",
                 0.0,
                 1.0,
-                0.2,
-                key="sho_r_h"
+                0.2
             )
 
 
             g_h = st.slider(
-                "G Hα",
+                "G Ha",
                 0.0,
                 1.0,
-                0.7,
-                key="sho_g_h"
+                0.7
             )
 
 
@@ -322,8 +251,7 @@ def sho_mixer():
                 "G OIII",
                 0.0,
                 1.0,
-                0.3,
-                key="sho_g_o"
+                0.3
             )
 
 
@@ -331,12 +259,12 @@ def sho_mixer():
                 "B OIII",
                 0.0,
                 1.0,
-                1.0,
-                key="sho_b_o"
+                1.0
             )
 
 
         else:
+
 
             r_s, r_h, g_h, g_o, b_o = apply_palette(
                 palette
@@ -348,32 +276,21 @@ def sho_mixer():
 
 
 
-        # -------------------------
-        # IMAGE
-        # -------------------------
-
         stretch = st.slider(
-
-            "Stretch",
-
+            "Stretch preview",
             0.5,
             10.0,
-
             st.session_state.sho_stretch,
-
             key="sho_stretch"
         )
 
 
+
         zoom = st.slider(
-
             "Zoom",
-
             1.0,
             2.0,
-
             st.session_state.sho_zoom,
-
             key="sho_zoom"
         )
 
@@ -383,24 +300,21 @@ def sho_mixer():
 
 
 
-        # -------------------------
-        # VALIDATION WORKFLOW
-        # -------------------------
-
-        st.subheader("✨ Continuer")
-
+        # =========================
+        # VALIDATION
+        # =========================
 
         if st.button(
             "➡ Valider cette composition SHO"
         ):
 
 
-            R, G, B = mix_sho(
+            # création RGB linéaire
 
+            R, G, B = mix_sho(
                 S,
                 H,
                 O,
-
                 r_s,
                 r_h,
                 g_h,
@@ -409,7 +323,23 @@ def sho_mixer():
             )
 
 
-            # stockage workflow
+
+            # =========================
+            # EXPORT RGB
+            # =========================
+
+            save_rgb_channels(
+                path,
+                R,
+                G,
+                B
+            )
+
+
+
+            # =========================
+            # STOCKAGE WORKFLOW
+            # =========================
 
             st.session_state.S = S
             st.session_state.H = H
@@ -424,13 +354,12 @@ def sho_mixer():
             st.session_state.palette = palette
 
 
-            # étape suivante
-
             st.session_state.workflow_step = 3
 
 
+
             st.success(
-                "Composition validée → ouverture SHO Lab"
+                "Composition SHO validée ✔️ Passage au traitement luminance"
             )
 
 
@@ -450,11 +379,9 @@ def sho_mixer():
 
 
         R, G, B = mix_sho(
-
             S,
             H,
             O,
-
             r_s,
             r_h,
             g_h,
@@ -463,40 +390,32 @@ def sho_mixer():
         )
 
 
-        RGB = make_preview(
 
+        RGB = make_preview(
             R,
             G,
             B,
-
             stretch
-
         )
 
 
 
         if zoom > 1:
 
+
             RGB = spzoom(
-
                 RGB,
-
                 (
                     zoom,
                     zoom,
                     1
                 ),
-
                 order=1
-
             )
 
 
 
         st.image(
-
             RGB,
-
             use_container_width=True
-
         )

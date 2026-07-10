@@ -7,24 +7,27 @@ from core.siril_version import get_siril_version
 
 
 
+# ─────────────────────────────────
+# PAGE PROJET
+# ─────────────────────────────────
+
 def show_project():
 
     st.title("📁 Projet")
 
 
+
     st.markdown(
         r"""
-        Configurer l'environnement de travail d'Astro Studio.  
+Configurer l'environnement de travail d'Astro Studio.
 
-        Le **Dossier de travail** doit contenir les trois fichiers :
-
-        - Ha.fit
-        - SII.fit
-        - OIII.fit
+Le dossier de travail doit contenir les fichiers Ha.fit - SII.fit - OIII.fit
 
 
-        Astro Studio détecte automatiquement le logiciel Siril installé sur votre ordinateur.
-        
+Astro Studio utilise deux programmes livrés avec Siril :
+
+- **siril-cli.exe** → scripts automatiques et prétraitement
+- **siril.exe** → ouverture graphique des images finales
         """,
         unsafe_allow_html=True
     )
@@ -48,13 +51,21 @@ def show_project():
 
 
     # ─────────────────────────────
-    # DETECTION AUTOMATIQUE SIRIL
+    # DETECTION SIRIL
     # ─────────────────────────────
 
     detected_siril = detect_siril()
 
 
+    detected_dir = None
+
+
     if detected_siril:
+
+
+        detected_dir = Path(
+            detected_siril
+        ).parent
 
 
         siril_version = get_siril_version(
@@ -76,38 +87,64 @@ def show_project():
 
 
         st.warning(
-            "⚠ Siril n'a pas été détecté automatiquement."
+            "⚠ Siril non détecté automatiquement."
         )
 
 
 
     # ─────────────────────────────
-    # INFORMATIONS TECHNIQUES
+    # CHEMINS SIRIL
     # ─────────────────────────────
 
+    default_cli = config.get(
+        "siril_cli",
+        str(
+            detected_dir / "siril-cli.exe"
+        )
+        if detected_dir
+        else ""
+    )
+
+
+    default_gui = config.get(
+        "siril_gui",
+        str(
+            detected_dir / "siril.exe"
+        )
+        if detected_dir
+        else ""
+    )
+
+
+
     with st.expander(
-        "🔧 Informations techniques"
+        "🔧 Configuration Siril"
     ):
 
 
-        siril = st.text_input(
-
-            "Chemin siril-cli.exe",
-
-            value=config.get(
-                "siril_path",
-                detected_siril or ""
-            )
-
+        siril_cli = st.text_input(
+            "Chemin siril-cli.exe (scripts)",
+            value=default_cli
         )
 
 
+        siril_gui = st.text_input(
+            "Chemin siril.exe (interface graphique)",
+            value=default_gui
+        )
 
-        if siril:
 
-            st.caption(
-                "Ce chemin peut être modifié si Siril est installé dans un autre dossier."
-            )
+        st.caption(
+            """
+siril-cli.exe :
+→ prétraitement automatique
+→ scripts Siril (.ssf)
+
+siril.exe :
+→ ouverture des images finales
+→ visualisation utilisateur
+            """
+        )
 
 
 
@@ -145,11 +182,13 @@ def show_project():
 
 
 
+        # dossier
+
         if not workdir:
 
 
             errors.append(
-                "Le dossier de travail n'est pas défini."
+                "Dossier de travail non défini."
             )
 
 
@@ -162,19 +201,40 @@ def show_project():
 
 
 
-        if not siril:
+        # CLI
+
+        if not siril_cli:
 
 
             errors.append(
-                "Le chemin Siril n'est pas défini."
+                "Chemin siril-cli.exe absent."
             )
 
 
-        elif not Path(siril).exists():
+        elif not Path(siril_cli).exists():
 
 
             errors.append(
-                "Le programme Siril est introuvable."
+                "siril-cli.exe introuvable."
+            )
+
+
+
+        # GUI
+
+        if not siril_gui:
+
+
+            errors.append(
+                "Chemin siril.exe absent."
+            )
+
+
+        elif not Path(siril_gui).exists():
+
+
+            errors.append(
+                "siril.exe introuvable."
             )
 
 
@@ -195,15 +255,21 @@ def show_project():
 
 
         # -------------------------
-        # OK
+        # VALIDATION OK
         # -------------------------
 
         else:
 
 
+
+            # sauvegarde config
+
             config["workdir"] = workdir
 
-            config["siril_path"] = siril
+            config["siril_cli"] = siril_cli
+
+            config["siril_gui"] = siril_gui
+
 
 
             save_config(
@@ -214,9 +280,36 @@ def show_project():
 
             st.session_state.config = config
 
+
+
+            # =====================
+            # PROJET
+            # =====================
+
             st.session_state.workdir = workdir
 
-            st.session_state.siril = siril
+
+
+            # =====================
+            # SIRIL CLI
+            # =====================
+
+            st.session_state.siril_cli = siril_cli
+
+
+
+            # Compatibilité anciens modules
+            # preprocessing utilise encore "siril"
+
+            st.session_state.siril = siril_cli
+
+
+
+            # =====================
+            # SIRIL GUI
+            # =====================
+
+            st.session_state.siril_gui = siril_gui
 
 
 
@@ -238,7 +331,7 @@ def show_project():
 
 
     # ─────────────────────────────
-    # ETAT DU PROJET
+    # ETAT PROJET
     # ─────────────────────────────
 
     st.subheader(
@@ -267,12 +360,12 @@ def show_project():
 
 
     if st.session_state.get(
-        "siril"
+        "siril_cli"
     ):
 
 
         st.success(
-            "🔭 Siril configuré ✔"
+            "⚙ Siril CLI configuré ✔"
         )
 
 
@@ -280,5 +373,24 @@ def show_project():
 
 
         st.warning(
-            "Siril non configuré"
+            "Siril CLI non configuré"
+        )
+
+
+
+    if st.session_state.get(
+        "siril_gui"
+    ):
+
+
+        st.success(
+            "🖥 Siril graphique configuré ✔"
+        )
+
+
+    else:
+
+
+        st.warning(
+            "Siril graphique non configuré"
         )

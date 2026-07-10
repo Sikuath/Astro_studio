@@ -1,6 +1,7 @@
 import numpy as np
 
 
+
 def preview_scale(img):
 
     img = img.astype(np.float32)
@@ -16,6 +17,7 @@ def preview_scale(img):
     )
 
     if hi - lo == 0:
+
         return np.zeros_like(img)
 
 
@@ -42,18 +44,61 @@ def make_preview(
     stretch=3.0
 ):
 
+    # --------------------------------
+    # NORMALISATION COMMUNE RGB
+    # --------------------------------
+
+    rgb = np.dstack(
+        [
+            R,
+            G,
+            B
+        ]
+    ).astype(
+        np.float32
+    )
+
+
+    lo = np.nanpercentile(
+        rgb,
+        0.5
+    )
+
+
+    hi = np.nanpercentile(
+        rgb,
+        99.5
+    )
+
+
+    if hi - lo == 0:
+
+        return np.zeros_like(rgb)
+
+
+
+    rgb = np.clip(
+        (rgb - lo) / (hi - lo),
+        0,
+        1
+    )
+
+
+
+    # séparation après normalisation
+
     Rv = asinh(
-        preview_scale(R),
+        rgb[:,:,0],
         stretch
     )
 
     Gv = asinh(
-        preview_scale(G),
+        rgb[:,:,1],
         stretch
     )
 
     Bv = asinh(
-        preview_scale(B),
+        rgb[:,:,2],
         stretch
     )
 
