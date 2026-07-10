@@ -68,7 +68,7 @@ if not files:
 
 
 # ==========================
-# Initialisation session
+# Session
 # ==========================
 
 if "index" not in st.session_state:
@@ -96,13 +96,12 @@ if "last_action_time" not in st.session_state:
 
 
 # ==========================
-# Anti répétition clavier
+# Anti répétition
 # ==========================
 
 def can_execute(delay=0.3):
 
     now = time.time()
-
 
     if now - st.session_state.last_action_time < delay:
 
@@ -139,7 +138,10 @@ current = files[
 # Traitement rejet
 # ==========================
 
-if st.session_state.reject_requested:
+if st.session_state.get(
+    "reject_requested",
+    False
+):
 
 
     reject_file(
@@ -154,15 +156,25 @@ if st.session_state.reject_requested:
     st.session_state.reject_requested = False
 
 
-    st.session_state.index = min(
-        st.session_state.index + 1,
-        len(files)-1
+    files = find_fits(
+        st.session_state["lights_folder"]
     )
+
+
+    if files:
+
+        st.session_state.index = min(
+            st.session_state.index,
+            len(files)-1
+        )
+
+
+    st.rerun()
 
 
 
 # ==========================
-# Actions navigation
+# Actions
 # ==========================
 
 def previous():
@@ -180,6 +192,14 @@ def next_image():
         len(files)-1,
         st.session_state.index + 1
     )
+
+
+
+def reject_action():
+
+    if can_execute(0.8):
+
+        st.session_state.reject_requested = True
 
 
 
@@ -209,7 +229,7 @@ with col_b:
 
 
 # ==========================
-# Commandes clavier
+# Navigation clavier
 # ==========================
 
 nav1, trash, nav2 = st.columns(
@@ -235,14 +255,11 @@ with nav1:
 
 with trash:
 
-    if shortcut_button(
+    shortcut_button(
         "⬆️ Rejeter",
-        "ArrowUp"
-    ):
-
-        if can_execute(0.8):
-
-            st.session_state.reject_requested = True
+        "ArrowUp",
+        on_click=reject_action
+    )
 
 
 
@@ -262,7 +279,7 @@ with nav2:
 
 
 # ==========================
-# Affichage image
+# Image
 # ==========================
 
 image = fits_preview(
@@ -275,13 +292,13 @@ if image:
 
     st.image(
         image,
-        width=900
+        width=800
     )
 
 
 
 # ==========================
-# Bouton souris rejet
+# Bouton souris
 # ==========================
 
 st.divider()
@@ -292,14 +309,12 @@ if st.button(
     use_container_width=True
 ):
 
-    if can_execute(0.8):
-
-        st.session_state.reject_requested = True
+    reject_action()
 
 
 
 # ==========================
-# Informations
+# Infos
 # ==========================
 
 info1, info2 = st.columns(2)
@@ -317,7 +332,7 @@ with info1:
 with info2:
 
     st.success(
-        f"📂 Lights disponibles : {len(files)}"
+        f"📂 Lights restants : {len(files)}"
     )
 
 
