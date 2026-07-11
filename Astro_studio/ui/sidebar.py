@@ -101,7 +101,7 @@ def sidebar():
             color: #888;
             line-height: 1.4;
         ">
-            © 2026 <b>Sikuath</b> — Astro Studio<br>
+            © 2026 <b>Sikuath</b> — Astro Suite<br>
             Logiciel distribué sous licence MIT.<br>
             Images, captures d'écran et contenus graphiques<br>
             sous licence <b>CC BY-NC-ND 4.0</b>,<br>

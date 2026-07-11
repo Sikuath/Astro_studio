@@ -27,6 +27,14 @@ st.set_page_config(
 
 
 # ==========================
+# Workflow étape 2
+# ==========================
+
+st.session_state.workflow_step = 2
+
+
+
+# ==========================
 # Thème + Sidebar
 # ==========================
 
@@ -68,7 +76,7 @@ if "rejected_folder" not in st.session_state:
 if "lights_folder" not in st.session_state:
 
     st.warning(
-        "Choisissez d'abord un projet"
+        "⚠️ Choisissez d'abord un projet"
     )
 
     st.stop()
@@ -84,7 +92,7 @@ files = find_fits(
 if not files:
 
     st.error(
-        "Aucun fichier FITS trouvé"
+        "❌ Aucun fichier FITS trouvé"
     )
 
     st.stop()
@@ -252,7 +260,7 @@ with col_b:
 
 
 # ==========================
-# Navigation clavier
+# Navigation
 # ==========================
 
 nav1, trash, nav2 = st.columns(
@@ -319,9 +327,7 @@ if image:
     )
 
 
-
     with col_img:
-
 
         st.image(
             image,
@@ -332,7 +338,6 @@ if image:
 
     with col_meta:
 
-
         st.subheader(
             "📋 FITS"
         )
@@ -341,7 +346,6 @@ if image:
         metadata = get_fits_metadata(
             current
         )
-
 
 
         if metadata:
@@ -381,7 +385,7 @@ if image:
 
 
 # ==========================
-# Bouton souris
+# Rejet souris
 # ==========================
 
 st.divider()
@@ -417,6 +421,25 @@ with info2:
 
     st.success(
         f"📂 Lights restants : {len(files)}"
+    )
+
+
+
+# ==========================
+# Passage étape suivante
+# ==========================
+
+st.divider()
+
+if st.button(
+    "➡️ Vérifier les images rejetées",
+    use_container_width=True
+):
+
+    st.session_state.workflow_step = 3
+
+    st.switch_page(
+        "pages/03_Check.py"
     )
 
 

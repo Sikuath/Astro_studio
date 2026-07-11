@@ -19,6 +19,16 @@ st.set_page_config(
 
 
 # ==========================
+# Initialisation workflow
+# ==========================
+
+if "workflow_step" not in st.session_state:
+
+    st.session_state.workflow_step = 1
+
+
+
+# ==========================
 # Masquer navigation native Streamlit
 # ==========================
 
@@ -46,7 +56,7 @@ load_theme()
 
 
 # ==========================
-# Sidebar personnalisée
+# Sidebar workflow
 # ==========================
 
 show_sidebar()
@@ -64,22 +74,94 @@ st.title(
 
 
 st.markdown(
-    """
-## Assistant de tri des acquisitions astronomiques
-
-
-Cette application permet :
-
-- 🔭 visualisation rapide des lights FITS
-- 🗑️ suppression des mauvaises acquisitions
-- ⚙️ lancement du prétraitement Siril
-- 🧪 préparation des couches LRGB / SHO
-
-
----
-
-Commencez par choisir un projet dans le menu de gauche.
 """
+## Assistant de traitement des acquisitions astronomiques
+
+Workflow :
+
+<div class="workflow">
+
+<div class="step">
+<div>
+<b>📁 Configuration du projet</b><br>
+Sélection des dossiers et paramètres Siril
+</div>
+</div>
+
+<div class="step">
+
+<div>
+<b>🔭 Sélection des meilleures acquisitions</b><br>
+Tri manuel des Lights
+</div>
+</div>
+
+<div class="step">
+
+<div>
+<b>🗑️ Vérification des rejets</b><br>
+Contrôle des images mises de côté
+</div>
+</div>
+
+<div class="step">
+
+<div>
+<b>⚙️ Prétraitement automatique Siril</b><br>
+Calibration, alignement et empilement
+</div>
+</div>
+
+<div class="step">
+
+<div>
+<b>✨ Traitement final LRGB / SHO</b><br>
+Finalisation de l'image astronomique
+</div>
+</div>
+
+</div>
+
+<br>
+
+Utilisez les boutons **Continuer ➡️** présents à chaque étape
+pour avancer dans le traitement.
+""",
+unsafe_allow_html=True
+)
+
+
+
+# ==========================
+# Etat workflow
+# ==========================
+
+st.divider()
+
+
+
+steps = {
+
+    1: "📁 Configuration du projet",
+
+    2: "🔭 Tri des Lights",
+
+    3: "📊 Analyse qualité",
+
+    4: "⚙️ Prétraitement Siril",
+
+    5: "✨ Traitement final"
+
+}
+
+
+
+current_step = st.session_state.workflow_step
+
+
+
+st.info(
+    f"Étape actuelle : {steps[current_step]}"
 )
 
 
@@ -87,6 +169,10 @@ Commencez par choisir un projet dans le menu de gauche.
 # ==========================
 # Projet actif
 # ==========================
+
+st.divider()
+
+
 
 if "lights_folder" in st.session_state:
 
@@ -97,6 +183,39 @@ if "lights_folder" in st.session_state:
 
 else:
 
-    st.info(
-        "Aucun projet chargé"
+    st.warning(
+        "📂 Aucun projet chargé"
     )
+
+# ==========================
+# Bouton étape suivante
+# ==========================
+
+st.divider()
+
+
+col1, col2, col3 = st.columns(
+    [2,1,2]
+)
+
+
+with col2:
+
+    if st.button(
+        "➡️ Commencer",
+        use_container_width=True
+    ):
+
+        st.session_state.workflow_step = 1
+
+        st.switch_page(
+            "pages/01_Project.py"
+        )
+
+# ==========================
+# Aide
+# ==========================
+
+st.caption(
+    "🔭 Astro Suite — Workflow astrophotographie"
+)

@@ -2,48 +2,91 @@ from pathlib import Path
 import shutil
 
 
-def reject_file(file_path, rejected_folder):
+# =====================================================
+# Rejet d'une image
+# =====================================================
 
-    file_path = Path(file_path)
+def reject_file(file, rejected_folder):
+    """
+    Déplace une image vers le dossier Rejected.
+    """
 
-    rejected_folder = Path(
-        rejected_folder
-    )
-
+    file = Path(file)
+    rejected_folder = Path(rejected_folder)
 
     rejected_folder.mkdir(
         parents=True,
         exist_ok=True
     )
 
-
-    destination = rejected_folder / file_path.name
-
+    destination = rejected_folder / file.name
 
     shutil.move(
-        str(file_path),
+        str(file),
         str(destination)
     )
 
 
-    return destination
+# =====================================================
+# Restauration d'une image
+# =====================================================
+
+def restore_file(file, lights_folder):
+    """
+    Replace une image du dossier Rejected
+    vers le dossier Lights.
+    """
+
+    file = Path(file)
+    lights_folder = Path(lights_folder)
+
+    lights_folder.mkdir(
+        parents=True,
+        exist_ok=True
+    )
+
+    destination = lights_folder / file.name
+
+    shutil.move(
+        str(file),
+        str(destination)
+    )
 
 
+# =====================================================
+# Vidage du dossier Rejected
+# =====================================================
 
-def clear_rejected_folder(folder):
+def clear_rejected_folder(rejected_folder):
+    """
+    Supprime tout le contenu du dossier Rejected.
+    Le dossier est recréé s'il n'existe pas.
+    """
 
-    folder = Path(folder)
+    rejected_folder = Path(rejected_folder)
 
-    if not folder.exists():
-        return
+    rejected_folder.mkdir(
+        parents=True,
+        exist_ok=True
+    )
 
+    deleted = 0
 
-    for item in folder.iterdir():
+    for item in rejected_folder.iterdir():
 
-        if item.is_file() or item.is_symlink():
+        try:
 
-            item.unlink()
+            if item.is_file() or item.is_symlink():
 
-        elif item.is_dir():
+                item.unlink()
+                deleted += 1
 
-            shutil.rmtree(item)
+            elif item.is_dir():
+
+                shutil.rmtree(item)
+                deleted += 1
+
+        except Exception:
+            pass
+
+    return deleted

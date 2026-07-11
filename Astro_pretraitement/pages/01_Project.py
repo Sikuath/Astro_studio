@@ -22,6 +22,16 @@ st.set_page_config(
 
 
 # ==========================
+# Initialisation workflow
+# ==========================
+
+if "workflow_step" not in st.session_state:
+
+    st.session_state.workflow_step = 1
+
+
+
+# ==========================
 # Thème + Sidebar
 # ==========================
 
@@ -55,17 +65,28 @@ lights_current = config.get(
 )
 
 
-
 rejected_current = config.get(
     "rejected_folder",
     ""
 )
 
 
+siril_current = config.get(
+    "siril_path",
+    r"C:\Program Files\Siril\bin\siril-cli.exe"
+)
+
+
 
 # ==========================
-# Configuration dossiers
+# Dossiers
 # ==========================
+
+st.subheader(
+    "📂 Dossiers du projet"
+)
+
+
 
 lights_folder = st.text_input(
     "📷 Dossier des Lights",
@@ -82,8 +103,71 @@ rejected_folder = st.text_input(
 
 
 # ==========================
-# Sauvegarde
+# Siril CLI
 # ==========================
+
+st.divider()
+
+
+st.subheader(
+    "🔭 Configuration Siril"
+)
+
+
+
+siril_path = st.text_input(
+    "⚙️ Exécutable Siril CLI",
+    value=siril_current
+)
+
+
+
+siril_file = Path(
+    siril_path
+)
+
+
+
+if siril_file.exists():
+
+    if "siril-cli" in siril_file.name.lower():
+
+        st.success(
+            "✅ Siril CLI détecté"
+        )
+
+    else:
+
+        st.warning(
+            """
+⚠️ Ce fichier n'est pas Siril CLI.
+
+Utilisez :
+
+C:\\Program Files\\Siril\\bin\\siril-cli.exe
+"""
+        )
+
+
+else:
+
+    st.error(
+        "❌ Siril CLI introuvable"
+    )
+
+
+
+# ==========================
+# Sauvegarde configuration
+# ==========================
+
+st.divider()
+
+
+
+configuration_ok = False
+
+
 
 if st.button(
     "💾 Enregistrer configuration",
@@ -101,11 +185,32 @@ if st.button(
     )
 
 
+    siril_file = Path(
+        siril_path
+    )
+
+
 
     if not lights_path.exists():
 
         st.error(
             "❌ Le dossier Lights n'existe pas"
+        )
+
+
+
+    elif not siril_file.exists():
+
+        st.error(
+            "❌ Siril CLI introuvable"
+        )
+
+
+
+    elif "siril-cli" not in siril_file.name.lower():
+
+        st.error(
+            "❌ Utilisez siril-cli.exe et non siril.exe"
         )
 
 
@@ -126,6 +231,8 @@ if st.button(
 
         config["rejected_folder"] = rejected_folder
 
+        config["siril_path"] = siril_path
+
 
 
         save_config(
@@ -138,6 +245,16 @@ if st.button(
 
         st.session_state["rejected_folder"] = rejected_folder
 
+        st.session_state["siril_path"] = siril_path
+
+
+
+        st.session_state.workflow_step = 1
+
+
+
+        configuration_ok = True
+
 
 
         st.success(
@@ -147,7 +264,44 @@ if st.button(
 
 
 # ==========================
-# Gestion rejets
+# Passage étape suivante
+# ==========================
+
+if (
+    configuration_ok
+    or
+    (
+        "lights_folder" in st.session_state
+        and st.session_state.workflow_step == 1
+    )
+):
+
+
+    st.divider()
+
+
+    if st.button(
+        "➡️ Continuer vers Preview Lights",
+        use_container_width=True
+    ):
+
+
+        st.session_state.workflow_step = 2
+
+
+        st.success(
+            "🔭 Passage à l'étape Preview Lights"
+        )
+
+
+        st.switch_page(
+            "pages/02_Preview.py"
+        )
+
+
+
+# ==========================
+# Gestion des rejets
 # ==========================
 
 st.divider()
@@ -166,7 +320,6 @@ if rejected_folder:
     rejected_path = Path(
         rejected_folder
     )
-
 
 
     if rejected_path.exists():
@@ -194,10 +347,10 @@ if rejected_folder:
                 """
 ⚠️ Attention :
 
-Cette action va supprimer définitivement
-tout le contenu du dossier des rejets.
+Cette action supprimera définitivement
+toutes les images du dossier des rejets.
 
-Êtes-vous certain de vouloir continuer ?
+Êtes-vous certain ?
 """
             )
 
@@ -210,7 +363,7 @@ tout le contenu du dossier des rejets.
             with col1:
 
                 if st.button(
-                    "✅ Oui, vider le dossier",
+                    "✅ Oui, vider",
                     use_container_width=True
                 ):
 
@@ -220,15 +373,12 @@ tout le contenu du dossier des rejets.
                     )
 
 
-
                     st.session_state.confirm_clear_rejected = False
 
 
-
                     st.success(
-                        "✅ Le dossier des rejets a été vidé"
+                        "✅ Dossier des rejets vidé"
                     )
-
 
 
                     st.rerun()
@@ -236,7 +386,6 @@ tout le contenu du dossier des rejets.
 
 
             with col2:
-
 
                 if st.button(
                     "❌ Annuler",
@@ -253,15 +402,13 @@ tout le contenu du dossier des rejets.
 
     else:
 
-
         st.info(
-            "ℹ️ Le dossier des rejets n'existe pas encore"
+            "ℹ️ Le dossier des rejets sera créé automatiquement"
         )
 
 
 
 else:
-
 
     st.info(
         "ℹ️ Choisissez un dossier de rejets"
