@@ -243,11 +243,13 @@ col_a, col_b = st.columns(
 )
 
 
+
 with col_a:
 
     st.subheader(
         current.name
     )
+
 
 
 with col_b:
@@ -260,7 +262,7 @@ with col_b:
 
 
 # ==========================
-# Navigation
+# Navigation compacte
 # ==========================
 
 nav1, trash, nav2 = st.columns(
@@ -272,7 +274,7 @@ nav1, trash, nav2 = st.columns(
 with nav1:
 
     if shortcut_button(
-        "⬅️ Précédente",
+        "⬅️",
         "ArrowLeft"
     ):
 
@@ -287,7 +289,7 @@ with nav1:
 with trash:
 
     shortcut_button(
-        "⬆️ Rejeter",
+        "🗑️",
         "ArrowUp",
         on_click=reject_action
     )
@@ -297,7 +299,7 @@ with trash:
 with nav2:
 
     if shortcut_button(
-        "Suivante ➡️",
+        "➡️",
         "ArrowRight"
     ):
 
@@ -385,23 +387,6 @@ if image:
 
 
 # ==========================
-# Rejet souris
-# ==========================
-
-st.divider()
-
-
-
-if st.button(
-    "🗑️ Rejeter cette image",
-    use_container_width=True
-):
-
-    reject_action()
-
-
-
-# ==========================
 # Informations
 # ==========================
 
@@ -426,21 +411,39 @@ with info2:
 
 
 # ==========================
-# Passage étape suivante
+# Actions principales
 # ==========================
 
 st.divider()
 
-if st.button(
-    "➡️ Vérifier les images rejetées",
-    use_container_width=True
-):
 
-    st.session_state.workflow_step = 3
+action1, action2 = st.columns(
+    [1,1]
+)
 
-    st.switch_page(
-        "pages/03_Check.py"
-    )
+
+
+with action1:
+
+    if st.button(
+        "🗑️ Rejeter cette image"
+    ):
+
+        reject_action()
+
+
+
+with action2:
+
+    if st.button(
+        "➡️ Contrôle final des rejets"
+    ):
+
+        st.session_state.workflow_step = 3
+
+        st.switch_page(
+            "pages/03_Check.py"
+        )
 
 
 

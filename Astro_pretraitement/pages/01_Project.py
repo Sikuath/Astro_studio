@@ -2,7 +2,11 @@ import streamlit as st
 from pathlib import Path
 
 from core.config import load_config, save_config
-from core.reject import clear_rejected_folder
+from core.reject import (
+    clear_trash_folder,
+    check_trash_folder,
+    extract_target_name
+)
 
 from ui.theme import load_theme
 from ui.sidebar import show_sidebar
@@ -22,7 +26,7 @@ st.set_page_config(
 
 
 # ==========================
-# Initialisation workflow
+# Workflow
 # ==========================
 
 if "workflow_step" not in st.session_state:
@@ -46,7 +50,7 @@ show_sidebar()
 # ==========================
 
 st.title(
-    "📁 Projet"
+    "📁 Configuration du projet"
 )
 
 
@@ -56,7 +60,6 @@ st.title(
 # ==========================
 
 config = load_config()
-
 
 
 lights_current = config.get(
@@ -78,54 +81,57 @@ siril_current = config.get(
 
 
 
-# ==========================
-# Dossiers
-# ==========================
+# =====================================================
+# Zone configuration
+# =====================================================
 
-st.subheader(
-    "📂 Dossiers du projet"
+left, right = st.columns(
+    [1, 3]
 )
 
 
 
-lights_folder = st.text_input(
-    "📷 Dossier des Lights",
-    value=lights_current
-)
+with left:
+
+    st.subheader(
+        "📂 Dossiers"
+    )
+
+
+    lights_folder = st.text_input(
+        "📷 Dossier des Lights",
+        value=lights_current
+    )
+
+
+    rejected_folder = st.text_input(
+        "🗑️ Dossier des rejets",
+        value=rejected_current
+    )
+
+
+    st.divider()
+
+
+    st.subheader(
+        "🔭 Siril"
+    )
+
+
+    siril_path = st.text_input(
+        "⚙️ Exécutable Siril CLI",
+        value=siril_current
+    )
 
 
 
-rejected_folder = st.text_input(
-    "🗑️ Dossier des rejets",
-    value=rejected_current
-)
-
-
-
-# ==========================
-# Siril CLI
-# ==========================
-
-st.divider()
-
-
-st.subheader(
-    "🔭 Configuration Siril"
-)
-
-
-
-siril_path = st.text_input(
-    "⚙️ Exécutable Siril CLI",
-    value=siril_current
-)
-
-
+# =====================================================
+# Vérification Siril
+# =====================================================
 
 siril_file = Path(
     siril_path
 )
-
 
 
 if siril_file.exists():
@@ -139,15 +145,8 @@ if siril_file.exists():
     else:
 
         st.warning(
-            """
-⚠️ Ce fichier n'est pas Siril CLI.
-
-Utilisez :
-
-C:\\Program Files\\Siril\\bin\\siril-cli.exe
-"""
+            "⚠️ Utilisez siril-cli.exe et non siril.exe"
         )
-
 
 else:
 
@@ -157,22 +156,11 @@ else:
 
 
 
-# ==========================
-# Sauvegarde configuration
-# ==========================
+# =====================================================
+# Contrôle Lights_trash
+# =====================================================
 
-st.divider()
-
-
-
-configuration_ok = False
-
-
-
-if st.button(
-    "💾 Enregistrer configuration",
-    use_container_width=True
-):
+if lights_folder:
 
 
     lights_path = Path(
@@ -180,45 +168,292 @@ if st.button(
     )
 
 
-    rejected_path = Path(
-        rejected_folder
+    trash_folder = (
+        lights_path.parent
+        /
+        "Lights_trash"
     )
 
 
-    siril_file = Path(
-        siril_path
-    )
+    if check_trash_folder(
+        trash_folder
+    ):
 
 
+        files = list(
+            trash_folder.glob("*")
+        )
 
-    if not lights_path.exists():
 
-        st.error(
-            "❌ Le dossier Lights n'existe pas"
+        st.divider()
+
+
+        st.subheader(
+            "🧹 Vérification Lights_trash"
         )
 
 
 
-    elif not siril_file.exists():
+        # ---------------------------------
+        # Objet courant
+        # ---------------------------------
 
-        st.error(
-            "❌ Siril CLI introuvable"
+        current_target = None
+
+
+        light_files = list(
+            lights_path.glob("*.fit")
+        )
+
+
+        if light_files:
+
+            current_target = extract_target_name(
+                light_files[0].name
+            )
+
+
+
+        # ---------------------------------
+        # Objets dans trash
+        # ---------------------------------
+
+        trash_targets = {}
+
+
+        for file in files:
+
+            target = extract_target_name(
+                file.name
+            )
+
+
+            if target:
+
+                trash_targets[target] = (
+                    trash_targets.get(target, 0)
+                    +
+                    1
+                )
+
+
+
+        st.warning(
+            f"""
+⚠️ Le dossier **Lights_trash** contient 
+**{len(files)} fichier(s)** :
+
+`{trash_folder}`
+"""
         )
 
 
 
-    elif "siril-cli" not in siril_file.name.lower():
+        # ---------------------------------
+        # Analyse intelligente
+        # ---------------------------------
 
-        st.error(
-            "❌ Utilisez siril-cli.exe et non siril.exe"
+        if current_target:
+
+
+            st.info(
+                f"📷 Objet du projet actuel : **{current_target}**"
+            )
+
+
+            if current_target in trash_targets:
+
+                st.error(
+                    f"""
+⚠️ ATTENTION !
+
+Le dossier Lights_trash contient aussi :
+**{current_target}**
+
+Cela peut correspondre à la session actuelle.
+Vérification recommandée avant suppression.
+"""
+                )
+
+            else:
+
+                if trash_targets:
+
+                    st.success(
+                        "✅ Aucun conflit détecté avec le projet actuel."
+                    )
+
+
+        # ---------------------------------
+        # Résumé objets trash
+        # ---------------------------------
+
+        if trash_targets:
+
+            with st.expander(
+                "🔎 Objets détectés dans Lights_trash"
+            ):
+
+                for target, count in sorted(
+                    trash_targets.items()
+                ):
+
+                    st.write(
+                        f"📷 **{target}** : {count} fichier(s)"
+                    )
+
+
+
+        # ---------------------------------
+        # Liste fichiers
+        # ---------------------------------
+
+        with st.expander(
+            "📋 Voir quelques fichiers"
+        ):
+
+            for file in files[:20]:
+
+                st.write(
+                    f"📷 {file.name}"
+                )
+
+
+            if len(files) > 20:
+
+                st.caption(
+                    f"... et {len(files)-20} autres fichiers"
+                )
+
+
+
+        # ---------------------------------
+        # Suppression
+        # ---------------------------------
+
+        if st.button(
+            "🗑️ Vider Lights_trash"
+        ):
+
+            st.session_state.confirm_trash_delete = True
+
+
+
+        if st.session_state.get(
+            "confirm_trash_delete",
+            False
+        ):
+
+
+            st.error(
+                "⚠️ Suppression définitive des images du dossier Lights_trash."
+            )
+
+
+            c1, c2 = st.columns(2)
+
+
+
+            with c1:
+
+                if st.button(
+                    "✅ Confirmer"
+                ):
+
+                    deleted = clear_trash_folder(
+                        trash_folder
+                    )
+
+
+                    st.session_state.confirm_trash_delete = False
+
+
+                    st.success(
+                        f"✅ {deleted} fichier(s) supprimé(s)"
+                    )
+
+
+                    st.rerun()
+
+
+
+            with c2:
+
+                if st.button(
+                    "❌ Annuler"
+                ):
+
+                    st.session_state.confirm_trash_delete = False
+
+                    st.rerun()
+
+
+
+# =====================================================
+# Sauvegarde
+# =====================================================
+
+st.divider()
+
+
+configuration_ok = False
+
+
+
+col1, col2, col3 = st.columns(
+    [2,1,2]
+)
+
+
+
+with col2:
+
+
+    if st.button(
+        "💾 Sauvegarder",
+        use_container_width=True
+    ):
+
+
+        lights_path = Path(
+            lights_folder
+        )
+
+
+        rejected_path = Path(
+            rejected_folder
+        )
+
+
+        siril_file = Path(
+            siril_path
         )
 
 
 
-    else:
+        if not lights_path.exists():
+
+            st.error(
+                "❌ Dossier Lights inexistant"
+            )
 
 
-        if not rejected_path.exists():
+        elif not siril_file.exists():
+
+            st.error(
+                "❌ Siril CLI introuvable"
+            )
+
+
+        elif "siril-cli" not in siril_file.name.lower():
+
+            st.error(
+                "❌ Mauvais exécutable Siril"
+            )
+
+
+        else:
+
 
             rejected_path.mkdir(
                 parents=True,
@@ -226,190 +461,36 @@ if st.button(
             )
 
 
+            config["lights_folder"] = lights_folder
 
-        config["lights_folder"] = lights_folder
+            config["rejected_folder"] = rejected_folder
 
-        config["rejected_folder"] = rejected_folder
-
-        config["siril_path"] = siril_path
-
+            config["siril_path"] = siril_path
 
 
-        save_config(
-            config
-        )
-
-
-
-        st.session_state["lights_folder"] = lights_folder
-
-        st.session_state["rejected_folder"] = rejected_folder
-
-        st.session_state["siril_path"] = siril_path
-
-
-
-        st.session_state.workflow_step = 1
-
-
-
-        configuration_ok = True
-
-
-
-        st.success(
-            "✅ Configuration sauvegardée"
-        )
-
-
-
-# ==========================
-# Passage étape suivante
-# ==========================
-
-if (
-    configuration_ok
-    or
-    (
-        "lights_folder" in st.session_state
-        and st.session_state.workflow_step == 1
-    )
-):
-
-
-    st.divider()
-
-
-    if st.button(
-        "➡️ Continuer vers Preview Lights",
-        use_container_width=True
-    ):
-
-
-        st.session_state.workflow_step = 2
-
-
-        st.success(
-            "🔭 Passage à l'étape Preview Lights"
-        )
-
-
-        st.switch_page(
-            "pages/02_Preview.py"
-        )
-
-
-
-# ==========================
-# Gestion des rejets
-# ==========================
-
-st.divider()
-
-
-
-st.subheader(
-    "🧹 Gestion des rejets"
-)
-
-
-
-if rejected_folder:
-
-
-    rejected_path = Path(
-        rejected_folder
-    )
-
-
-    if rejected_path.exists():
-
-
-        if "confirm_clear_rejected" not in st.session_state:
-
-            st.session_state.confirm_clear_rejected = False
-
-
-
-        if st.button(
-            "🗑️ Vider le dossier des rejets",
-            use_container_width=True
-        ):
-
-            st.session_state.confirm_clear_rejected = True
-
-
-
-        if st.session_state.confirm_clear_rejected:
-
-
-            st.warning(
-                """
-⚠️ Attention :
-
-Cette action supprimera définitivement
-toutes les images du dossier des rejets.
-
-Êtes-vous certain ?
-"""
+            save_config(
+                config
             )
 
 
+            st.session_state.lights_folder = lights_folder
 
-            col1, col2 = st.columns(2)
+            st.session_state.rejected_folder = rejected_folder
 
-
-
-            with col1:
-
-                if st.button(
-                    "✅ Oui, vider",
-                    use_container_width=True
-                ):
+            st.session_state.siril_path = siril_path
 
 
-                    clear_rejected_folder(
-                        rejected_folder
-                    )
+            configuration_ok = True
 
 
-                    st.session_state.confirm_clear_rejected = False
+            st.success(
+                "✅ Configuration sauvegardée"
+            )
 
 
-                    st.success(
-                        "✅ Dossier des rejets vidé"
-                    )
+            st.session_state.workflow_step = 2
 
 
-                    st.rerun()
-
-
-
-            with col2:
-
-                if st.button(
-                    "❌ Annuler",
-                    use_container_width=True
-                ):
-
-
-                    st.session_state.confirm_clear_rejected = False
-
-
-                    st.rerun()
-
-
-
-    else:
-
-        st.info(
-            "ℹ️ Le dossier des rejets sera créé automatiquement"
-        )
-
-
-
-else:
-
-    st.info(
-        "ℹ️ Choisissez un dossier de rejets"
-    )
+            st.switch_page(
+                "pages/02_Preview.py"
+            )
