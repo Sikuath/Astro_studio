@@ -2,16 +2,18 @@ import streamlit as st
 
 from ui.sidebar import show_sidebar
 from ui.theme import load_theme
-
-
+from pathlib import Path
 
 # ==========================
 # Configuration
 # ==========================
+BASE_DIR = Path(__file__).parent
+
+ICON = BASE_DIR / "assets" / "Astro_suite.ico"
 
 st.set_page_config(
     page_title="Astro Prétraitement",
-    page_icon="📷",
+    page_icon=str(ICON),
     layout="wide",
     initial_sidebar_state="expanded"
 )

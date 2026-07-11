@@ -10,16 +10,18 @@ from ui.pages.preprocessing import show_preprocessing
 from tools.sho_mixer import sho_mixer
 
 from ui.pages.sho_lab import show_sho_lab
-
+from pathlib import Path
 
 
 # ─────────────────────────────────────
 # CONFIG STREAMLIT
 # ─────────────────────────────────────
+BASE_DIR = Path(__file__).parent
 
+ICON = BASE_DIR / "assets" / "Astro_suite.ico"
 st.set_page_config(
     page_title="Astro Studio",
-    page_icon="🔭",
+    page_icon=str(ICON),
     layout="wide",
     initial_sidebar_state="expanded",
 )
