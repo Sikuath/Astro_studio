@@ -95,14 +95,37 @@ def sho_mixer():
         st.session_state.sho_palette = "Hubble SHO"
 
 
+
     if "sho_stretch" not in st.session_state:
 
         st.session_state.sho_stretch = 3.0
 
 
+
     if "sho_zoom" not in st.session_state:
 
         st.session_state.sho_zoom = 1.0
+
+
+
+    # Valeurs utilisées par le mode manuel
+
+    if "sho_manual_values" not in st.session_state:
+
+        st.session_state.sho_manual_values = (
+            0.8,
+            0.2,
+            0.7,
+            0.3,
+            1.0
+        )
+
+
+
+    if "sho_previous_palette" not in st.session_state:
+
+        st.session_state.sho_previous_palette = None
+
 
 
 
@@ -149,6 +172,22 @@ def sho_mixer():
 
 
 
+        # =========================
+        # CHARGE LA PALETTE
+        # POUR EDITEUR MANUEL
+        # =========================
+
+        if palette != "Manual":
+
+            st.session_state.sho_manual_values = apply_palette(
+                palette
+            )
+
+            st.session_state.sho_previous_palette = palette
+
+
+
+
         descriptions = {
 
             "Manual":
@@ -157,6 +196,7 @@ def sho_mixer():
 
             Réglage manuel SII / Ha / OIII.
             """,
+
 
             "Hubble SHO":
             """
@@ -167,12 +207,14 @@ def sho_mixer():
             OIII → Bleu
             """,
 
+
             "HOO Boost":
             """
             Palette HOO renforcée.
 
             Ha + OIII dominants.
             """,
+
 
             "HOO Natural":
             """
@@ -182,25 +224,30 @@ def sho_mixer():
             OIII cyan/bleu.
             """,
 
+
             "Hα Rich":
             """
             Accentuation du H-alpha.
             """,
+
 
             "OIII Rich":
             """
             Accentuation de l'OIII.
             """,
 
+
             "Foraxx Pro":
             """
             Palette avancée inspirée Foraxx.
             """,
 
+
             "Gold & Blue":
             """
             Palette artistique chaud/froid.
             """,
+
 
             "Teal & Orange":
             """
@@ -217,17 +264,51 @@ def sho_mixer():
 
 
         # =========================
+        # TABLEAU PALETTES SHO
+        # =========================
+
+        with st.expander(
+            "🎨 Voir les paramètres des palettes SHO"
+        ):
+
+            st.markdown(
+                """
+
+### Configurations des palettes SHO
+
+| Palette | R:SII | R:Hα | G:Hα | G:OIII | B:OIII |
+|---|---:|---:|---:|---:|---:|
+| 🌌 Hubble SHO | 0.8 | 0.2 | 0.7 | 0.3 | 1.0 |
+| 🔥 HOO Boost | 0.0 | 0.15 | 0.3 | 0.7 | 1.0 |
+| 🌿 HOO Natural | 0.0 | 0.10 | 0.6 | 0.4 | 1.0 |
+| ❤️ Hα Rich | 0.2 | 0.8 | 0.8 | 0.2 | 0.8 |
+| 🔵 OIII Rich | 0.0 | 0.10 | 0.0 | 1.0 | 1.0 |
+| 🟡 Foraxx Pro | 0.6 | 0.4 | 0.4 | 0.6 | 1.0 |
+| 🌅 Gold & Blue | 1.0 | 0.0 | 0.5 | 0.5 | 1.0 |
+| 🟠 Teal & Orange | 0.9 | 0.1 | 0.3 | 0.7 | 1.0 |
+
+"""
+            )
+
+
+
+        # =========================
         # REGLAGES
         # =========================
 
         if palette == "Manual":
 
 
+            r_s, r_h, g_h, g_o, b_o = (
+                st.session_state.sho_manual_values
+            )
+
+
             r_s = st.slider(
                 "R SII",
                 0.0,
                 1.0,
-                0.8
+                r_s
             )
 
 
@@ -235,7 +316,7 @@ def sho_mixer():
                 "R Ha",
                 0.0,
                 1.0,
-                0.2
+                r_h
             )
 
 
@@ -243,7 +324,7 @@ def sho_mixer():
                 "G Ha",
                 0.0,
                 1.0,
-                0.7
+                g_h
             )
 
 
@@ -251,7 +332,7 @@ def sho_mixer():
                 "G OIII",
                 0.0,
                 1.0,
-                0.3
+                g_o
             )
 
 
@@ -259,7 +340,16 @@ def sho_mixer():
                 "B OIII",
                 0.0,
                 1.0,
-                1.0
+                b_o
+            )
+
+
+            st.session_state.sho_manual_values = (
+                r_s,
+                r_h,
+                g_h,
+                g_o,
+                b_o
             )
 
 
@@ -269,29 +359,40 @@ def sho_mixer():
             r_s, r_h, g_h, g_o, b_o = apply_palette(
                 palette
             )
-
-
-
         st.divider()
 
 
 
+        # =========================
+        # STRETCH / ZOOM
+        # =========================
+
         stretch = st.slider(
+
             "Stretch preview",
+
             0.5,
             10.0,
+
             st.session_state.sho_stretch,
+
             key="sho_stretch"
+
         )
 
 
 
         zoom = st.slider(
+
             "Zoom",
+
             1.0,
             2.0,
+
             st.session_state.sho_zoom,
+
             key="sho_zoom"
+
         )
 
 
@@ -312,14 +413,17 @@ def sho_mixer():
             # création RGB linéaire
 
             R, G, B = mix_sho(
+
                 S,
                 H,
                 O,
+
                 r_s,
                 r_h,
                 g_h,
                 g_o,
                 b_o
+
             )
 
 
@@ -329,10 +433,13 @@ def sho_mixer():
             # =========================
 
             save_rgb_channels(
+
                 path,
+
                 R,
                 G,
                 B
+
             )
 
 
@@ -374,28 +481,36 @@ def sho_mixer():
     with col_right:
 
 
-        st.subheader("👁 Preview")
+        st.subheader(
+            "👁 Preview"
+        )
 
 
 
         R, G, B = mix_sho(
+
             S,
             H,
             O,
+
             r_s,
             r_h,
             g_h,
             g_o,
             b_o
+
         )
 
 
 
         RGB = make_preview(
+
             R,
             G,
             B,
+
             stretch
+
         )
 
 
@@ -404,18 +519,25 @@ def sho_mixer():
 
 
             RGB = spzoom(
+
                 RGB,
+
                 (
                     zoom,
                     zoom,
                     1
                 ),
+
                 order=1
+
             )
 
 
 
         st.image(
+
             RGB,
+
             use_container_width=True
+
         )
