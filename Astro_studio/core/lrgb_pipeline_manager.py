@@ -192,9 +192,17 @@ class LRGBPipelineManager:
                 src,
                 dst
             )
+    # =========================================================
+    # CLEANUP
+    # =========================================================
+    def cleanup(self):
 
+        process_dir = self.workdir / "process"
 
+        if process_dir.exists():
+            shutil.rmtree(process_dir)
 
+        print("Temporary process directory removed.")
 
     # =========================================================
     # STEP 0
@@ -381,45 +389,7 @@ class LRGBPipelineManager:
 
             )
 
-
-
-
-    # =========================================================
-    # CLEANUP
-    # =========================================================
-
-    def cleanup(self):
-
-
-        process = self.workdir / "process"
-
-
-        for folder in [
-
-            "astrometrie",
-            "registration"
-
-        ]:
-
-
-            path = process / folder
-
-
-            if path.exists():
-
-                shutil.rmtree(
-                    path
-                )
-
-
-
-        print(
-            "Temporary LRGB folders removed."
-        )
-
-
-
-
+  
     # =========================================================
     # FULL PIPELINE
     # =========================================================
@@ -502,9 +472,6 @@ class LRGBPipelineManager:
 
             return False, logs
 
-
-
-
         # ==========================
         # ASTROMETRY
         # ==========================
@@ -534,9 +501,6 @@ class LRGBPipelineManager:
         log(
             "✔ Astrometry done"
         )
-
-
-
 
         # ==========================
         # COPY ASTROM
@@ -586,9 +550,6 @@ class LRGBPipelineManager:
 
             return False, logs
 
-
-
-
         # ==========================
         # REGISTRATION
         # ==========================
@@ -611,9 +572,6 @@ class LRGBPipelineManager:
             )
 
             return False, logs
-
-
-
 
         # ==========================
         # RENAME
@@ -648,9 +606,6 @@ class LRGBPipelineManager:
             )
 
             return False, logs
-
-
-
 
         # ==========================
         # COPY LINEAR
@@ -701,9 +656,6 @@ class LRGBPipelineManager:
 
             return False, logs
 
-
-
-
         # ==========================
         # LINEAR MATCH
         # ==========================
@@ -742,9 +694,6 @@ class LRGBPipelineManager:
             progress_callback(
                 1.0
             )
-
-
-
 
         # ==========================
         # CLEAN

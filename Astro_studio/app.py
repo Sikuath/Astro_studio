@@ -2,20 +2,14 @@ import streamlit as st
 from pathlib import Path
 import base64
 
-
 from ui.sidebar import sidebar
-
-
 from ui.pages.project import show_project
 from ui.pages.preprocessing import show_preprocessing
 from ui.pages.lrgb_preprocessing import show_lrgb_preprocessing
-
-
 from tools.sho_mixer import sho_mixer
 from tools.lrgb_mixer import lrgb_mixer
-
-
 from ui.pages.sho_lab import show_sho_lab
+from ui.pages.rgb_lab import show_rgb_lab
 
 
 
@@ -370,25 +364,13 @@ elif step == 2:
 
 elif step == 3:
 
-
-    project_type = st.session_state.get(
-        "project_type"
-    )
-
+    project_type = st.session_state.get("project_type")
 
     if project_type == "SHO":
-
-
         show_sho_lab()
 
-
-
     elif project_type == "LRGB":
-
-
-        st.info(
-            "Module LRGB Lab en préparation."
-        )
+        show_rgb_lab()
 
 
 

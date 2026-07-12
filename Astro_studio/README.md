@@ -1,102 +1,247 @@
-# 🔭 Astro Studio
+# 🔭 Astro_studio
 
-Astro Studio est une application de traitement d’images astrophotographiques centrée sur le mix SHO (SII / Hα / OIII).  
-Elle permet de charger un projet, manipuler des palettes, ajuster le stretch et le zoom, et exporter des images RGB.
+Astro_studio est une application de traitement d’images astrophotographiques développée avec **Python + Streamlit**.
 
----
+Elle propose un workflow complet pour la recomposition d’images **SHO (SII / Hα / OIII)** et **LRGB (Luminance / Rouge / Vert / Bleu)**, avec une interface graphique simple orientée astrophotographie.
 
-## ✨ Fonctionnalités actuelles
-
-- 📂 Gestion de projets astrophotographiques
-- 🌈 Mixage SHO (SII / Hα / OIII)
-- 🎨 Palettes prédéfinies + mode manuel
-- 🔍 Preview interactive en temps réel
-- 📈 Ajustement du stretch
-- 🔎 Zoom d’inspection
-- 💾 Export des canaux RGB en FITS
+L’objectif est de proposer un environnement de travail clair, évolutif et adapté aussi bien à un usage personnel qu’à un contexte pédagogique en club astro.
 
 ---
 
-## 🧪 Workflow utilisateur
+# ✨ Fonctionnalités actuelles
+
+## 📂 Gestion de projets
+
+* Création et chargement de projets astrophotographiques
+* Détection automatique du type de projet :
+
+  * SHO
+  * LRGB
+* Gestion des chemins Siril CLI et Siril GUI
+
+---
+
+# 🌈 Workflow SHO
+
+* Import des couches :
+
+  * `SII.fit`
+  * `HA.fit`
+  * `OIII.fit`
+
+* Prétraitement automatisé :
+
+  * préparation des dossiers de travail
+  * astrométrie
+  * registration
+  * génération des couches linéaires
+
+* Recomposition SHO :
+
+  * palettes prédéfinies
+  * mode manuel
+  * aperçu temps réel
+  * réglage du stretch
+  * zoom d’inspection
+
+Palettes disponibles :
+
+* Manual
+* Hubble SHO
+* HOO Boost
+* HOO Natural
+* Hα Rich
+* OIII Rich
+* Foraxx Pro
+* Gold & Blue
+* Teal & Orange
+
+---
+
+# 🌈 Workflow LRGB
+
+Support de la recomposition classique :
+
+* `L.fit`
+* `R.fit`
+* `G.fit`
+* `B.fit`
+
+Pipeline :
+
+1. Préparation du projet
+2. Astrométrie
+3. Registration
+4. Renommage automatique des couches
+5. Préparation linéaire
+6. Mix LRGB
+
+La luminance est injectée dans les couches couleur tout en conservant un export FITS linéaire.
+
+---
+
+# 🔬 Traitement final
+
+* Preview interactive
+* Ajustement du stretch d'affichage
+* Zoom d'inspection
+* Export FITS linéaire
+* Ouverture automatique dans Siril graphique
+
+Les fichiers exportés conservent les données astrophotographiques sans stretch destructif.
+
+---
+
+# 🧪 Workflow utilisateur
 
 1. Créer ou sélectionner un dossier projet
-2. Ajouter les fichiers :
-   - `SII.fit`
-   - `HA.fit`
-   - `OIII.fit`
-3. Aller dans l’onglet **Traitement**
-4. Choisir une palette ou régler manuellement les coefficients
-5. Ajuster stretch et zoom
-6. Exporter les images RGB
 
----
+2. Ajouter les fichiers sources :
 
-## 📁 Structure d’un projet
+### Projet SHO
+
+```
 mon_projet/
 ├── SII.fit
 ├── HA.fit
-├── OIII.fit
+└── OIII.fit
+```
 
+### Projet LRGB
+
+```
+mon_projet/
+├── L.fit
+├── R.fit
+├── G.fit
+└── B.fit
+```
+
+3. Lancer le prétraitement
+
+4. Choisir la recomposition :
+
+* SHO
+* LRGB
+
+5. Ajuster l’aperçu
+
+6. Exporter la composition finale
+
+7. Continuer le traitement dans Siril
 
 ---
 
-## 🚀 Installation (mode développement)
+# 📁 Structure du projet
 
-1. Cloner le projet
+```
+Astro_suite/
+
+├── Astro_studio/
+│
+│   ├── core/
+│   │   ├── pipelines
+│   │   ├── FITS handling
+│   │   └── processing
+│   │
+│   ├── tools/
+│   │   ├── SHO mixer
+│   │   └── LRGB mixer
+│   │
+│   ├── ui/
+│   │   └── Streamlit interface
+│   │
+│   └── scripts/
+│       └── Siril scripts
+│
+└── Astro_pretraitement/
+```
+
+---
+
+# 🚀 Installation (développement)
+
+## 1. Cloner le projet
+
 ```bash
-git clone https://github.com/Sikuath/Astro_studio.git
-cd Astro_studio
+git clone https://github.com/Sikuath/Astro_suite.git
+cd Astro_suite
+```
 
-2. Créer un environnement virtuel
+## 2. Créer un environnement virtuel
+
+### Linux / Mac
+
 ```bash
 python -m venv venv
-source venv/bin/activate   # Linux / Mac
-venv\Scripts\activate      # Windows
+source venv/bin/activate
+```
 
-3. Installer les dépendances
+### Windows
+
+```bash
+venv\Scripts\activate
+```
+
+## 3. Installer les dépendances
+
 ```bash
 pip install -r requirements.txt
+```
 
+## 4. Lancer l'application
 
-4. Utiliser l'application
-▶️lancer Astro_studio.bat
+Windows :
 
-5. Dépendances principales
-streamlit
-numpy
-scipy
-astropy (lecture FITS si utilisé)
-pillow (preview image)
+```
+Astro_studio.bat
+```
 
-6. Palettes disponibles
-Manual
-Hubble SHO
-HOO Boost
-HOO Natural
-Hα Rich
-OIII Rich
-Foraxx Pro
-Gold & Blue
-Teal & Orange
+ou manuellement :
 
-7. 💾 Export
-L’application génère :
+```bash
+streamlit run app.py
+```
 
+---
+
+# 📦 Dépendances principales
+
+* streamlit
+* numpy
+* scipy
+* astropy
+* pillow
+
+---
+
+# 💾 Export
+
+Astro Suite génère des fichiers FITS :
+
+## SHO
+
+```
 R.fit
 G.fit
 B.fit
+RGB_final.fit
+```
 
-8. Divers
-aucune installation Python requise pour les utilisateurs
-🔭 Vision à long terme
+## LRGB
 
-Astro Studio est conçu pour évoluer vers un outil pédagogique pour club astro :
+```
+LRGB_R.fit
+LRGB_G.fit
+LRGB_B.fit
+RGB_final.fit
+```
 
-simplification de l’interface pour les élèves
-presets de traitement automatiques
-mode guidé (workflow pas à pas)
-distribution facile sous Windows
-📄 Licence
+Les fichiers restent en données linéaires afin de permettre une reprise complète du traitement dans Siril ou un autre logiciel.
+
+---
+
+# 📄 Licence
 
 MIT License © 2026
 

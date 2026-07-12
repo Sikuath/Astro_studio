@@ -15,15 +15,16 @@ def save_rgb_channels(
     R,
     G,
     B,
-    header=None
+    header=None,
+    prefix=""
 ):
     """
-    Sauvegarde les couches RGB linéaires.
+    Sauvegarde les couches RGB.
 
-    Création :
-        R.fit
-        G.fit
-        B.fit
+    Exemple :
+        prefix=""        -> R.fit
+        prefix="RGB_"    -> RGB_R.fit
+        prefix="Final_"  -> Final_R.fit
     """
 
     workdir = Path(workdir)
@@ -33,23 +34,20 @@ def save_rgb_channels(
         exist_ok=True
     )
 
-
     save_fits(
-        workdir / "R.fit",
+        workdir / f"{prefix}R.fit",
         R,
         header
     )
 
-
     save_fits(
-        workdir / "G.fit",
+        workdir / f"{prefix}G.fit",
         G,
         header
     )
 
-
     save_fits(
-        workdir / "B.fit",
+        workdir / f"{prefix}B.fit",
         B,
         header
     )

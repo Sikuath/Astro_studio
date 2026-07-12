@@ -4,7 +4,7 @@ from pathlib import Path
 
 from core.fits_io import load_fits
 from core.preview import make_preview
-from core.rgb_export import save_rgb_channels, save_rgb_final
+from core.rgb_export import save_rgb_channels
 
 
 
@@ -42,23 +42,16 @@ def mix_lrgb(
 ):
 
     """
-    Création RGB finale.
-
-    La luminance est injectée
-    dans les couches couleur.
-
-    RGB = couleur × luminance
-
-    Données conservées linéaires.
+    LRGB :
+    - RGB garde la couleur
+    - Luminance injectée modérément
     """
 
+    L_norm = L / L.max()
 
-    Rf = R * L * l_weight
-
-    Gf = G * L * l_weight
-
-    Bf = B * L * l_weight
-
+    Rf = R * (1 + L_norm * l_weight)
+    Gf = G * (1 + L_norm * l_weight)
+    Bf = B * (1 + L_norm * l_weight)
 
     return Rf, Gf, Bf
 
@@ -116,7 +109,6 @@ def lrgb_mixer():
         ]
     ):
 
-
         st.error(
             "Fichiers LRGB_linear introuvables."
         )
@@ -125,20 +117,16 @@ def lrgb_mixer():
 
 
 
-
     # =================================================
     # CHARGEMENT
     # =================================================
 
     L, R, G, B = load_lrgb_data(
-
         L_path,
         R_path,
         G_path,
         B_path
-
     )
-
 
 
 
@@ -147,21 +135,15 @@ def lrgb_mixer():
     # =================================================
 
     if "lrgb_stretch" not in st.session_state:
-
         st.session_state.lrgb_stretch = 3.0
 
 
-
     if "lrgb_zoom" not in st.session_state:
-
         st.session_state.lrgb_zoom = 1.0
 
 
-
     if "lrgb_l_weight" not in st.session_state:
-
         st.session_state.lrgb_l_weight = 1.0
-
 
 
 
@@ -238,6 +220,10 @@ def lrgb_mixer():
 
 
 
+        # =================================================
+        # VALIDATION
+        # =================================================
+
         if st.button(
             "➡ Valider cette composition LRGB"
         ):
@@ -255,8 +241,7 @@ def lrgb_mixer():
             )
 
 
-
-            # export couches RGB
+            # Export couches intermédiaires
 
             save_rgb_channels(
 
@@ -266,28 +251,17 @@ def lrgb_mixer():
 
                 G_final,
 
-                B_final
-
-            )
-
-
-
-            # export cube RGB final
-
-            save_rgb_final(
-
-                R_final,
-                G_final,
                 B_final,
 
-                path
+                prefix="LRGB_"
 
             )
 
 
 
-            st.session_state.L = L
+            # Stockage workflow
 
+            st.session_state.L = L
 
             st.session_state.R = R_final
 
@@ -296,13 +270,17 @@ def lrgb_mixer():
             st.session_state.B = B_final
 
 
-            st.session_state.RGB_final = True
+
+            st.session_state.workflow_step = 3
+
 
 
             st.success(
-                "Composition LRGB validée ✔️"
+                "Composition LRGB validée ✔️ Passage au RGB Lab"
             )
 
+
+            st.rerun()
 
 
 
@@ -335,7 +313,9 @@ def lrgb_mixer():
         RGB = make_preview(
 
             R_preview,
+
             G_preview,
+
             B_preview,
 
             stretch
