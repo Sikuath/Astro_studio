@@ -56,6 +56,23 @@ Palettes disponibles :
 * Gold & Blue
 * Teal & Orange
 
+## 🎨 Configurations des palettes SHO
+
+Les palettes sont définies par les coefficients de mélange :
+
+| Palette | R : SII | R : Hα | G : Hα | G : OIII | B : OIII |
+|---|---:|---:|---:|---:|---:|
+| 🌌 Hubble SHO | 0.8 | 0.2 | 0.7 | 0.3 | 1.0 |
+| 🔥 HOO Boost | 0.0 | 0.15 | 0.3 | 0.7 | 1.0 |
+| 🌿 HOO Natural | 0.0 | 0.10 | 0.6 | 0.4 | 1.0 |
+| ❤️ Hα Rich | 0.2 | 0.8 | 0.8 | 0.2 | 0.8 |
+| 🔵 OIII Rich | 0.0 | 0.10 | 0.0 | 1.0 | 1.0 |
+| 🟡 Foraxx Pro | 0.6 | 0.4 | 0.4 | 0.6 | 1.0 |
+| 🌅 Gold & Blue | 1.0 | 0.0 | 0.5 | 0.5 | 1.0 |
+| 🟠 Teal & Orange | 0.9 | 0.1 | 0.3 | 0.7 | 1.0 |
+
+### Formule de recomposition
+
 ---
 
 # 🌈 Workflow LRGB
