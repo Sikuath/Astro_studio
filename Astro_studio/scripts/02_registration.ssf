@@ -23,7 +23,7 @@ register colors -2pass
 # --------------------------------------------------
 # 3) Application de l'alignement
 # --------------------------------------------------
-seqapplyreg colors -framing=min
+seqapplyreg colors
 
 # --------------------------------------------------
 # REGISTRATION OK

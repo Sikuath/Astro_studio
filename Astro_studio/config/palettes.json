@@ -1,3 +1,16 @@
 {
-    "custom": {}
+    "custom": {
+        "Teal & Orange v1": {
+            "coefficients": [
+                0.85,
+                0.13,
+                0.3,
+                0.7,
+                0.96
+            ],
+            "description": "Un peu de vert toutefois",
+            "objet": "NGC 6871",
+            "date": "2026-07-13"
+        }
+    }
 }
