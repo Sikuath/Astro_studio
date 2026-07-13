@@ -188,7 +188,9 @@ def sho_mixer():
             1.0
 
         )
+    if "previous_palette" not in st.session_state:
 
+        st.session_state.previous_palette = None
 
 
 
@@ -233,6 +235,34 @@ def sho_mixer():
 
         )
 
+        # =================================================
+        # MEMORISATION POUR MODE MANUEL
+        # =================================================
+
+        if palette != "Manual":
+
+
+         if palette != st.session_state.previous_palette:
+
+
+             if palette in custom_palettes:
+
+                  values = custom_palettes[palette]["coefficients"]
+
+
+             else:
+
+                  values = apply_palette(
+                      palette
+                   )
+
+
+             st.session_state.sho_manual_values = tuple(
+                    values
+             )
+
+
+             st.session_state.previous_palette = palette
 
 
         # =================================================
