@@ -14,7 +14,6 @@ from core.rgb_export import (
 )
 
 
-
 # ─────────────────────────────────
 # PAGE SHO LAB
 # ─────────────────────────────────
@@ -257,7 +256,7 @@ def show_sho_lab():
                 "Création RGB_final.fit..."
             ):
 
-
+                
                 image_finale = save_rgb_final(
                     R_final,
                     G_final,

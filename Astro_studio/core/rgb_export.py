@@ -2,8 +2,7 @@ from pathlib import Path
 import subprocess
 import numpy as np
 
-from core.fits_io import save_fits
-
+from core.fits_io import save_fits, get_reference_header
 
 
 # ─────────────────────────────────
@@ -62,28 +61,12 @@ def save_rgb_final(
     R,
     G,
     B,
-    workdir,
-    header=None
+    workdir
 ):
-    """
-    Création du fichier RGB final.
 
-    Format :
-        RGB_final.fit
-
-    Cube FITS :
-        couche 0 = R
-        couche 1 = G
-        couche 2 = B
-    """
-
-    workdir = Path(workdir)
-
-    workdir.mkdir(
-        parents=True,
-        exist_ok=True
+    header = get_reference_header(
+        workdir
     )
-
 
     rgb_cube = np.stack(
         [
@@ -94,10 +77,7 @@ def save_rgb_final(
     )
 
 
-    output = (
-        workdir /
-        "RGB_final.fit"
-    )
+    output = Path(workdir) / "RGB_final.fit"
 
 
     save_fits(
