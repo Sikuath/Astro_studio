@@ -1,0 +1,143 @@
+/* =========================
+   APP BACKGROUND
+========================= */
+
+.stApp {
+
+    background-image:
+        linear-gradient(
+            rgba(5,10,20,0.55),
+            rgba(5,10,20,0.55)
+        ),
+        url("background.jpg");
+
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+}
+
+
+/* =========================
+   SIDEBAR GLASS
+========================= */
+
+section[data-testid="stSidebar"] {
+
+    background:
+        rgba(15,18,30,0.25);
+
+    backdrop-filter:
+        blur(12px);
+}
+
+
+section[data-testid="stSidebar"] > div {
+
+    background:
+        transparent;
+}
+
+
+/* =========================
+   MAIN CONTAINER
+========================= */
+
+div.block-container {
+
+    background:
+        rgba(15,18,30,0.20);
+
+    backdrop-filter:
+        blur(5px);
+
+    border-radius:
+        20px;
+
+    padding:
+        2rem;
+
+    margin-top:
+        1rem;
+}
+
+
+/* =========================
+   TEXT
+========================= */
+
+h1,h2,h3,h4,h5,h6 {
+
+    color:white;
+}
+
+
+p,label {
+
+    color:#ECECEC;
+}
+
+
+/* =========================
+   BUTTONS
+========================= */
+
+.stButton > button {
+
+    background:
+        rgba(80,120,255,0.25);
+
+    color:white;
+
+    border-radius:
+        10px;
+
+    border:
+        1px solid rgba(255,255,255,0.25);
+}
+
+
+.stButton > button:hover {
+
+    background:
+        rgba(80,120,255,0.45);
+}
+
+
+/* =========================
+   CODE / IA TERMINAL
+========================= */
+
+.stCode {
+
+    background:
+        rgba(0,0,0,0.85);
+
+    border-radius:
+        12px;
+}
+
+
+.stCode code {
+
+    color:
+        #00ff88;
+
+    font-family:
+        Consolas,
+        Courier New,
+        monospace;
+}
+
+
+/* =========================
+   COMPACT UI
+========================= */
+
+.block-container {
+
+    padding-top:
+        1rem;
+
+    padding-bottom:
+        1rem;
+}

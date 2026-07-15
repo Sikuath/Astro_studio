@@ -1,0 +1,48 @@
+{
+    "paths": {
+        "images": "F:/Astro_suite/images",
+        "reports": "F:/Astro_suite/Astro_IA/reports",
+        "siril": "C:/Program Files/Siril/bin/siril.exe",
+        "gimp": "C:/Program Files/GIMP 3/bin/gimp.exe"
+    },
+
+    "ollama": {
+        "url": "http://localhost:11434",
+        "default_model": "astro-expert:latest",
+        "vision_model": "llava:7b"
+    },
+
+
+    "instruments": {
+
+        "evolux_62ed": {
+
+            "name": "Sky-Watcher Evolux 62ED",
+            "type": "lunette",
+            "aperture": 62,
+            "focal_length": 400,
+            "camera": "ZWO ASI2600MM Pro"
+        },
+
+
+        "newton_200": {
+
+            "name": "Newton 200/1000",
+            "type": "reflecteur",
+            "aperture": 200,
+            "focal_length": 1000,
+
+            "coma_corrector": true,
+
+            "coma_corrector_factor": 0.95,
+
+            "effective_focal_length": 950,
+
+            "camera": "ZWO ASI2600MM Pro"
+        }
+
+    },
+
+
+    "current_setup": "evolux_62ed"
+}
