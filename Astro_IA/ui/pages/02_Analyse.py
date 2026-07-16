@@ -1,6 +1,7 @@
 # ==========================================================
 # Astro IA
 # Page 02 - Analyse acquisition
+# PARTIE 1/2
 # ==========================================================
 
 
@@ -12,13 +13,16 @@ from core.fov_calculator import calculate_fov
 from core.siril_runner import SirilRunner
 from core.siril_analyser import SirilAnalyser
 
+
 from core.catalog_filter import (
     filter_catalog,
     create_ai_summary
 )
 
+
 from core.ollama_client import ask_ollama
 from core.config import load_config
+
 
 from core.vision_client import analyse_image
 from core.vision_preview import create_vision_preview
@@ -132,6 +136,7 @@ workdir = fits_path.parent
 
 
 
+
 # ==========================================================
 # OUTILS
 # ==========================================================
@@ -148,6 +153,7 @@ def safe_float(
     except Exception:
 
         return default
+
 
 
 
@@ -261,6 +267,7 @@ context = {
 
 
 
+
 # ==========================================================
 # CALCUL FOV
 # ==========================================================
@@ -286,6 +293,7 @@ fov = calculate_fov(
 
 
 st.session_state.fov = fov
+
 
 
 
@@ -320,6 +328,8 @@ with c3:
 
 
 
+
+
 # ==========================================================
 # ANALYSE SIRIL
 # ==========================================================
@@ -333,6 +343,7 @@ st.header(
 if "siril_result" not in st.session_state:
 
     st.session_state.siril_result = None
+
 
 
 
@@ -364,14 +375,17 @@ if st.button(
         )
 
 
+
         runner = SirilRunner(
             siril_path
         )
 
 
+
         analyser = SirilAnalyser(
             runner
         )
+
 
 
         progress.progress(
@@ -399,6 +413,7 @@ if st.button(
         )
 
 
+
         st.session_state.siril_result = result
 
 
@@ -411,15 +426,20 @@ if st.button(
 
 
         count = len(
+
             result.get(
                 "objects",
                 []
             )
+
         )
 
 
+
         st.success(
+
             f"✅ Analyse terminée ({count} objets détectés)"
+
         )
 
 
@@ -431,12 +451,18 @@ if st.button(
 
 
         st.error(
+
             f"Erreur Siril : {e}"
+
         )
+
+
+
+
+
 # ==========================================================
 # RESULTATS CATALOGUE
 # ==========================================================
-
 
 result = st.session_state.get(
     "siril_result",
@@ -458,8 +484,11 @@ if result:
     )
 
 
+
     st.subheader(
+
         f"⭐ Objets détectés par Siril : {len(objects)}"
+
     )
 
 
@@ -490,7 +519,7 @@ if result:
 
             filtered_objects,
 
-            use_container_width=True
+            width="stretch"
 
         )
 
@@ -512,10 +541,11 @@ if result:
 
 
 
+
+
 # ==========================================================
 # PREPARATION CONTEXTE IA
 # ==========================================================
-
 
 st.divider()
 
@@ -593,10 +623,6 @@ if result:
 
 
     st.session_state.ai_context = ai_context
-
-
-
-
     # ======================================================
     # GENERATION RAPPORT IA
     # ======================================================
@@ -609,7 +635,6 @@ if result:
         type="primary"
 
     ):
-
 
 
         ollama_config = config.get(
@@ -636,27 +661,47 @@ if result:
 
 
 
-            # ------------------------------------------------
+            # ==================================================
             # ETAPE 1
-            # CREATION IMAGE POUR VISION
-            # ------------------------------------------------
+            # CREATION UNIQUE PREVIEW VISION
+            # ==================================================
 
 
             progress_ai.progress(
 
                 15,
 
-                text="Création preview vision..."
+                text="Création preview couleur pour LLaVA..."
 
             )
 
 
-
+            #
+            # UN SEUL APPEL ICI
+            #
             vision_path = create_vision_preview(
 
                 fits_path
 
             )
+
+
+
+            vision_path = Path(
+
+                vision_path
+
+            ).resolve()
+
+
+
+            if not vision_path.exists():
+
+                raise FileNotFoundError(
+
+                    f"Preview absente : {vision_path}"
+
+                )
 
 
 
@@ -668,18 +713,95 @@ if result:
 
 
 
+            st.success(
 
-            # ------------------------------------------------
+                f"✅ Preview créée : {vision_path}"
+
+            )
+
+
+
+            # DEBUG IMAGE ENVOYEE
+            with st.expander(
+
+                "🖼️ Debug image envoyée à LLaVA"
+
+            ):
+
+
+                st.write(
+
+                    "FITS source :"
+
+                )
+
+
+                st.code(
+
+                    str(fits_path)
+
+                )
+
+
+
+                st.write(
+
+                    "PNG envoyé :"
+
+                )
+
+
+                st.code(
+
+                    str(vision_path)
+
+                )
+
+
+
+                st.write(
+
+                    "Existe :",
+
+                    vision_path.exists()
+
+                )
+
+
+
+                st.write(
+
+                    "Taille :",
+
+                    vision_path.stat().st_size
+
+                )
+
+
+
+                st.image(
+
+                    vision_path,
+
+                    width=800
+
+                )
+
+
+
+
+
+            # ==================================================
             # ETAPE 2
-            # ANALYSE LLAVA
-            # ------------------------------------------------
+            # ANALYSE LLaVA
+            # ==================================================
 
 
             progress_ai.progress(
 
                 35,
 
-                text="Analyse visuelle LLAVA..."
+                text="Analyse visuelle LLaVA..."
 
             )
 
@@ -693,13 +815,7 @@ if result:
 
             )
 
-            st.write("Création preview :", fits_path)
 
-            vision_path = create_vision_preview(
-            fits_path
-)
-
-            st.write("PNG créé :", vision_path)
 
             vision_result = analyse_image(
 
@@ -716,10 +832,50 @@ if result:
 
 
 
-            # ------------------------------------------------
+            # DEBUG LLaVA
+
+
+            st.write(
+
+                "DEBUG LLaVA"
+
+            )
+
+
+            st.write(
+
+                "Chemin envoyé :",
+
+                vision_path
+
+            )
+
+
+            st.write(
+
+                "Existe :",
+
+                vision_path.exists()
+
+            )
+
+
+            st.write(
+
+                "Taille :",
+
+                vision_path.stat().st_size
+
+            )
+
+
+
+
+
+            # ==================================================
             # ETAPE 3
-            # RAPPORT ASTRO IA
-            # ------------------------------------------------
+            # ANALYSE SCIENTIFIQUE QWEN
+            # ==================================================
 
 
             progress_ai.progress(
@@ -743,13 +899,17 @@ if result:
                 ),
 
 
+
                 acquisition=context,
+
 
 
                 fov=fov,
 
 
+
                 simbad_data=ai_context,
+
 
 
                 workflow=st.session_state.get(
@@ -761,9 +921,11 @@ if result:
                 ),
 
 
+
                 vision_result=vision_result
 
             )
+
 
 
 
@@ -779,6 +941,7 @@ if result:
 
 
             st.session_state.analysis_result = response
+
 
 
             st.session_state.analysis_ready = True
@@ -809,8 +972,9 @@ if result:
 
 
 
+
 # ==========================================================
-# AFFICHAGE RESULTAT VISION
+# AFFICHAGE PREVIEW LLaVA
 # ==========================================================
 
 
@@ -829,7 +993,7 @@ if vision_preview:
 
     with st.expander(
 
-        "🖼️ Image envoyée à LLAVA"
+        "🖼️ Preview utilisée par LLaVA"
 
     ):
 
@@ -845,6 +1009,12 @@ if vision_preview:
 
 
 
+
+# ==========================================================
+# AFFICHAGE RESULTAT LLaVA
+# ==========================================================
+
+
 if st.session_state.get(
 
     "vision_result",
@@ -856,7 +1026,7 @@ if st.session_state.get(
 
     with st.expander(
 
-        "👁️ Observation visuelle LLAVA"
+        "👁️ Observation visuelle LLaVA"
 
     ):
 
@@ -872,7 +1042,7 @@ if st.session_state.get(
 
 
 # ==========================================================
-# RAPPORT
+# RAPPORT FINAL
 # ==========================================================
 
 
