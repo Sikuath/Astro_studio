@@ -5,12 +5,12 @@ REM Se placer dans le dossier racine Astro_suite
 cd /d "%~dp0"
 
 REM Activer l'environnement virtuel commun
-call "venv\Scripts\activate.bat"
+call ".venv\Scripts\activate.bat"
 
-REM Se placer dans Astro_Studio
+REM Se placer dans Astro_studio
 cd /d "%~dp0Astro_Studio"
 
-REM Lancer Streamlit avec le venv commun
+REM Lancer Streamlit avec le Python du venv commun
 python -m streamlit run app.py
 
 pause

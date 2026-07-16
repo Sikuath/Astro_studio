@@ -10,11 +10,14 @@ def show_sidebar(config):
 
     with st.sidebar:
 
+
         # ==========================================
         # IMAGE
         # ==========================================
 
-        img = Path("ui/background.jpg")
+        img = Path(
+            "ui/background.jpg"
+        )
 
         if img.exists():
 
@@ -23,103 +26,169 @@ def show_sidebar(config):
                 use_container_width=True
             )
 
+
         # ==========================================
         # TITRE
         # ==========================================
 
-        st.title("🤖 Astro IA")
+        st.title(
+            "🤖 Astro IA"
+        )
 
         st.caption(
             "Assistant astrophotographique local"
         )
 
+
         st.divider()
+
 
         # ==========================================
         # WORKFLOW
         # ==========================================
 
-        st.subheader("📂 Workflow")
+        st.subheader(
+            "📂 Workflow"
+        )
+
 
         workflow = [
 
             ("Configuration", "config_validated"),
-            ("Analyse", "analysis_ready"),
+
             ("FITS", "fits_loaded"),
+
+            ("Analyse", "analysis_ready"),
+
             ("Rapport", "report_ready")
 
         ]
 
+
         for name, key in workflow:
 
-            if st.session_state.get(key, False):
 
-                st.success(f"✔ {name}")
+            if st.session_state.get(
+                key,
+                False
+            ):
+
+                st.success(
+                    f"✔ {name}"
+                )
 
             else:
 
-                st.info(f"○ {name}")
+                st.info(
+                    f"○ {name}"
+                )
+
 
         st.divider()
+
+
 
         # ==========================================
         # IA
         # ==========================================
 
-        st.subheader("🖥 IA")
+        st.subheader(
+            "🖥 IA"
+        )
+
+
+        ollama = config.get(
+            "ollama",
+            {}
+        )
+
 
         st.write(
             f"**Assistant :** "
-            f"{config['ollama']['default_model']}"
+            f"{ollama.get(
+                'default_model',
+                'Non défini'
+            )}"
         )
+
 
         st.write(
             f"**Vision :** "
-            f"{config['ollama']['vision_model']}"
+            f"{ollama.get(
+                'vision_model',
+                'Non défini'
+            )}"
         )
 
+
         st.divider()
+
+
 
         # ==========================================
         # SESSION
         # ==========================================
 
-        st.subheader("🔭 Session")
+        st.subheader(
+            "🔭 Session"
+        )
+
 
         instrument = st.session_state.get(
             "instrument",
             "Aucun"
         )
 
+
         objet = st.session_state.get(
-            "object",
+            "object_name",
             "Aucun"
         )
+
 
         image = st.session_state.get(
             "image_name",
             "Aucune"
         )
 
-        st.write(f"**Instrument :** {instrument}")
 
-        st.write(f"**Objet :** {objet}")
+        st.write(
+            f"**Instrument :** {instrument}"
+        )
 
-        st.write(f"**Image :** {image}")
+
+        st.write(
+            f"**Objet :** {objet}"
+        )
+
+
+        st.write(
+            f"**Image :** {image}"
+        )
+
 
         st.divider()
+
+
 
         # ==========================================
         # VERSION
         # ==========================================
 
-        st.caption("Astro Suite")
+        st.caption(
+            "Astro Suite"
+        )
 
-        st.caption("Astro IA v0.1")
 
-                # ─────────────────────────────
-        # FOOTER SIDEBAR
-        # ─────────────────────────────
+        st.caption(
+            "Astro IA v0.1"
+        )
+
+
+
+        # ==========================================
+        # FOOTER
+        # ==========================================
 
         st.markdown(
 
@@ -133,7 +202,8 @@ def show_sidebar(config):
 
                 padding-top: 15px;
 
-                border-top: 1px solid rgba(255,255,255,0.15);
+                border-top:
+                1px solid rgba(255,255,255,0.15);
 
                 text-align: center;
 
@@ -153,7 +223,7 @@ def show_sidebar(config):
             © 2026 <b>Sikuath</b> — Astro Suite<br>
             Logiciel distribué sous licence MIT.<br>
             Images, captures d'écran et contenus graphiques<br>
-            sous licence <b>CC BY-NC-ND 4.0</b>,<br>
+            sous licence <b>CC BY-NC-ND 4.4</b>,<br>
             sauf mention contraire.
 
             </div>
