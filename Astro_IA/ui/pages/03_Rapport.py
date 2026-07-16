@@ -413,33 +413,19 @@ st.header(
 if vision_result:
 
 
-    st.warning(
-
+    st.info(
 """
-Cette analyse est réalisée par un modèle de vision.
+Cette analyse est réalisée par LLaVA.
 
-Elle correspond uniquement à une interprétation visuelle.
-
+Elle correspond uniquement à une observation visuelle.
 Elle ne remplace pas les mesures scientifiques :
-
-- FWHM
-- HFR
-- excentricité
-- bruit
-- suivi
-- photométrie
-
-Observation visuelle uniquement.
+FWHM, HFR, SNR, excentricité, suivi ou photométrie.
 """
-
     )
 
 
-
     st.markdown(
-
         vision_result
-
     )
 
 

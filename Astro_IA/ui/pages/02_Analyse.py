@@ -9,7 +9,6 @@ import streamlit as st
 from pathlib import Path
 
 
-
 from core.fov_calculator import calculate_fov
 from core.siril_runner import SirilRunner
 from core.siril_analyser import SirilAnalyser
@@ -41,23 +40,34 @@ st.title(
 
 
 
+# ==========================================================
+# INITIALISATION SESSION
+# ==========================================================
+
+if "vision_result" not in st.session_state:
+
+    st.session_state.vision_result = None
+
+
+
+if "siril_result" not in st.session_state:
+
+    st.session_state.siril_result = None
+
+
+
 
 # ==========================================================
 # VERIFICATION FITS
 # ==========================================================
 
 if not st.session_state.get(
-
     "fits_loaded",
-
     False
-
 ):
 
     st.warning(
-
         "⚠️ Aucun FITS validé."
-
     )
 
     st.stop()
@@ -65,11 +75,8 @@ if not st.session_state.get(
 
 
 header = st.session_state.get(
-
     "fits_header",
-
     {}
-
 )
 
 
@@ -86,19 +93,12 @@ config = load_config()
 siril_path = (
 
     config
-
     .get(
-
         "paths",
-
         {}
-
     )
-
     .get(
-
         "siril"
-
     )
 
 )
@@ -107,11 +107,8 @@ siril_path = (
 
 if not siril_path:
 
-
     st.error(
-
         "Chemin Siril absent du config.json"
-
     )
 
     st.stop()
@@ -124,20 +121,15 @@ if not siril_path:
 # ==========================================================
 
 fits_path = st.session_state.get(
-
     "image_path"
-
 )
 
 
 
 if not fits_path:
 
-
     st.error(
-
         "Aucun FITS temporaire trouvé."
-
     )
 
     st.stop()
@@ -146,24 +138,18 @@ if not fits_path:
 
 
 fits_path = Path(
-
     fits_path
-
 ).resolve()
 
 
 
 if not fits_path.exists():
 
-
     st.error(
-
         "Le fichier FITS n'existe plus."
-
     )
 
     st.stop()
-
 
 
 
@@ -178,18 +164,13 @@ workdir = fits_path.parent
 # ==========================================================
 
 def safe_float(
-
     value,
-
     default=0
-
 ):
-
 
     try:
 
         return float(value)
-
 
     except Exception:
 
@@ -209,141 +190,91 @@ context = {
     "object":
 
         header.get(
-
             "OBJECT",
-
             "Inconnu"
-
         ),
-
 
 
     "ra":
 
         safe_float(
-
             header.get(
-
                 "RA",
-
                 0
-
             )
-
         ),
-
 
 
     "dec":
 
         safe_float(
-
             header.get(
-
                 "DEC",
-
                 0
-
             )
-
         ),
-
 
 
     "instrument":
 
         header.get(
-
             "INSTRUME",
-
             "Inconnu"
-
         ),
-
 
 
     "telescope":
 
         header.get(
-
             "TELESCOP",
-
             "Inconnu"
-
         ),
-
 
 
     "focal":
 
         safe_float(
-
             header.get(
-
                 "FOCALLEN",
-
                 0
-
             )
-
         ),
-
 
 
     "pixel":
 
         safe_float(
-
             header.get(
-
                 "XPIXSZ",
-
                 3.76
-
             ),
-
             3.76
-
         ),
-
 
 
     "fits_exposure":
 
         safe_float(
-
             header.get(
-
                 "EXPTIME",
-
                 0
-
             )
-
         ),
-
 
 
     "gain":
 
         header.get(
-
             "GAIN",
-
             "?"
-
         ),
-
 
 
     "temperature":
 
         header.get(
-
             "CCD-TEMP",
-
             "?"
-
         )
 
 }
@@ -357,9 +288,7 @@ context = {
 # ==========================================================
 
 st.header(
-
     "📐 Champ photographié"
-
 )
 
 
@@ -391,11 +320,8 @@ c1, c2, c3 = st.columns(3)
 with c1:
 
     st.metric(
-
         "Horizontal",
-
         f"{fov['fov_horizontal_deg']}°"
-
     )
 
 
@@ -403,11 +329,8 @@ with c1:
 with c2:
 
     st.metric(
-
         "Vertical",
-
         f"{fov['fov_vertical_deg']}°"
-
     )
 
 
@@ -415,13 +338,9 @@ with c2:
 with c3:
 
     st.metric(
-
         "Échantillonnage",
-
         f"{fov['sampling_arcsec_pixel']} arcsec/pixel"
-
     )
-
 
 
 
@@ -433,38 +352,21 @@ with c3:
 # ==========================================================
 
 st.header(
-
     "🌌 Analyse du champ"
-
 )
 
 
 
-if "siril_result" not in st.session_state:
-
-    st.session_state.siril_result = None
-
-
-
-
-
 if st.button(
-
     "🚀 Lancer analyse Siril",
-
     type="primary"
-
 ):
 
 
     progress = st.progress(
-
         0,
-
         text="Préparation..."
-
     )
-
 
 
 
@@ -475,42 +377,31 @@ if st.button(
 
 
 
-
     try:
 
 
         progress.progress(
-
             20,
-
             text="Préparation image..."
-
         )
 
 
 
         runner = SirilRunner(
-
             siril_path
-
         )
 
 
 
         analyser = SirilAnalyser(
-
             runner
-
         )
 
 
 
         progress.progress(
-
             40,
-
             text="Analyse astrométrique Siril..."
-
         )
 
 
@@ -528,11 +419,8 @@ if st.button(
 
 
         progress.progress(
-
             80,
-
             text="Filtrage catalogue..."
-
         )
 
 
@@ -541,34 +429,16 @@ if st.button(
 
 
 
-
         progress.progress(
-
             100,
-
             text="Analyse Siril terminée ✅"
-
-        )
-
-
-
-
-        objects = result.get(
-
-            "objects",
-
-            []
-
         )
 
 
 
         st.success(
-
-            f"✅ Analyse terminée : {len(objects)} objets catalogués"
-
+            "✅ Analyse Siril terminée."
         )
-
 
 
 
@@ -578,20 +448,15 @@ if st.button(
         progress.empty()
 
 
-
         st.error(
-
             f"Erreur Siril : {e}"
-
         )
-
-
-
 
 
 # ==========================================================
 # PREPARATION CONTEXTE IA
 # ==========================================================
+
 
 result = st.session_state.get(
 
@@ -630,12 +495,8 @@ if result:
 
 
 
-    st.info(
-
-        f"⭐ Catalogue utilisé pour IA : {len(filtered_objects)} objets"
-
-    )
-
+    # Pas d'affichage tableau Siril
+    # Le catalogue reste uniquement un contexte IA
 
 
     st.session_state.objects = filtered_objects
@@ -665,7 +526,12 @@ if result:
 
         "catalogue":
 
-            summary
+            summary,
+
+
+        "objects_count":
+
+            len(filtered_objects)
 
 
     }
@@ -673,9 +539,14 @@ if result:
 
 
     st.session_state.ai_context = ai_context
-# ==========================================================
-# GENERATION RAPPORT IA
-# ==========================================================
+
+
+
+
+
+    # ======================================================
+    # GENERATION RAPPORT IA
+    # ======================================================
 
 
     if st.button(
@@ -685,6 +556,7 @@ if result:
         type="primary"
 
     ):
+
 
 
         ollama_config = config.get(
@@ -713,8 +585,9 @@ if result:
 
             # ==================================================
             # ETAPE 1
-            # CREATION PREVIEW VISION
+            # CREATION PREVIEW LLaVA
             # ==================================================
+
 
             progress_ai.progress(
 
@@ -762,34 +635,12 @@ if result:
 
 
 
-            # ==================================================
-            # DEBUG IMAGE LLaVA
-            # ==================================================
-
-            with st.expander(
-
-                "🖼️ Aperçu image analysée par LLaVA"
-
-            ):
-
-
-                st.image(
-
-                    vision_path,
-
-                    width=800
-
-                )
-
-
-
-
-
 
             # ==================================================
             # ETAPE 2
-            # ANALYSE VISUELLE
+            # ANALYSE VISUELLE LLaVA
             # ==================================================
+
 
             progress_ai.progress(
 
@@ -821,7 +672,46 @@ if result:
 
 
 
-            st.session_state.vision_result = vision_result
+            # ----------------------------------------------
+            # Nettoyage sortie LLaVA
+            # ----------------------------------------------
+
+
+            if vision_result:
+
+
+                vision_result = vision_result.strip()
+
+
+
+                vision_result = vision_result.replace(
+
+                    "Observation visuelle uniquement.\n\n",
+
+                    ""
+
+                )
+
+
+
+                vision_result = vision_result.replace(
+
+                    "Observation visuelle uniquement.",
+
+                    ""
+
+                ).strip()
+
+
+
+                st.session_state.vision_result = vision_result
+
+
+
+            else:
+
+
+                st.session_state.vision_result = None
 
 
 
@@ -829,8 +719,9 @@ if result:
 
             # ==================================================
             # ETAPE 3
-            # ANALYSE SCIENTIFIQUE ASTRO IA
+            # ANALYSE SCIENTIFIQUE QWEN3
             # ==================================================
+
 
             progress_ai.progress(
 
@@ -853,13 +744,17 @@ if result:
                 ),
 
 
+
                 acquisition=context,
+
 
 
                 fov=fov,
 
 
+
                 simbad_data=ai_context,
+
 
 
                 workflow=st.session_state.get(
@@ -871,7 +766,14 @@ if result:
                 ),
 
 
-                vision_result=vision_result
+
+                vision_result=st.session_state.get(
+
+                    "vision_result",
+
+                    None
+
+                )
 
             )
 
@@ -902,6 +804,7 @@ if result:
                 "✅ Rapport IA généré."
 
             )
+
 
 
 
@@ -989,9 +892,27 @@ if vision_result:
     ):
 
 
-        st.write(
+        st.markdown(
 
             vision_result
+
+        )
+
+
+
+else:
+
+
+    with st.expander(
+
+        "👁️ Observation visuelle LLaVA"
+
+    ):
+
+
+        st.info(
+
+            "Aucune analyse visuelle LLaVA disponible."
 
         )
 
