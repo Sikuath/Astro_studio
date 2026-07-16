@@ -1,7 +1,6 @@
 from pathlib import Path
 import json
 import shutil
-from datetime import datetime
 
 
 # ==========================================================
@@ -9,15 +8,9 @@ from datetime import datetime
 # ==========================================================
 
 CONFIG_FILE = Path("config.json")
+
 DEFAULT_FILE = Path("config_default.json")
-BACKUP_DIR = Path("backups")
 
-
-# ==========================================================
-# CREATION DOSSIER BACKUP
-# ==========================================================
-
-BACKUP_DIR.mkdir(exist_ok=True)
 
 
 # ==========================================================
@@ -27,15 +20,16 @@ BACKUP_DIR.mkdir(exist_ok=True)
 def load_config():
 
     """
-    Charge config.json.
-    Si le fichier n'existe pas,
-    il est automatiquement recréé
-    depuis config_default.json.
+    Charge uniquement config.json.
+
+    Si absent :
+    création depuis config_default.json.
     """
 
     if not CONFIG_FILE.exists():
 
         restore_default()
+
 
     with open(
         CONFIG_FILE,
@@ -46,6 +40,7 @@ def load_config():
         return json.load(f)
 
 
+
 # ==========================================================
 # SAUVEGARDE
 # ==========================================================
@@ -53,14 +48,18 @@ def load_config():
 def save_config(config):
 
     """
-    Sauvegarde la configuration.
-    Une copie est créée automatiquement.
+    Ecrit directement config.json.
+    Aucun historique.
+    Aucun backup.
     """
 
-    backup_config()
+    temp = Path(
+        "config.tmp"
+    )
+
 
     with open(
-        CONFIG_FILE,
+        temp,
         "w",
         encoding="utf-8"
     ) as f:
@@ -73,33 +72,10 @@ def save_config(config):
         )
 
 
-# ==========================================================
-# BACKUP
-# ==========================================================
-
-def backup_config():
-
-    """
-    Sauvegarde horodatée
-    avant modification.
-    """
-
-    if not CONFIG_FILE.exists():
-        return
-
-    now = datetime.now().strftime(
-        "%Y%m%d_%H%M%S"
+    temp.replace(
+        CONFIG_FILE
     )
 
-    destination = (
-        BACKUP_DIR /
-        f"config_{now}.json"
-    )
-
-    shutil.copy2(
-        CONFIG_FILE,
-        destination
-    )
 
 
 # ==========================================================
@@ -109,8 +85,8 @@ def backup_config():
 def restore_default():
 
     """
-    Copie config_default.json
-    vers config.json
+    Remplace config.json
+    par la configuration usine.
     """
 
     if not DEFAULT_FILE.exists():
@@ -119,10 +95,15 @@ def restore_default():
             "config_default.json introuvable."
         )
 
+
     shutil.copy2(
+
         DEFAULT_FILE,
+
         CONFIG_FILE
+
     )
+
 
 
 # ==========================================================
@@ -131,21 +112,21 @@ def restore_default():
 
 def validate_config(config):
 
-    """
-    Vérifie les rubriques
-    essentielles.
-    """
-
     required = [
 
         "paths",
+
         "ollama",
+
         "instruments",
+
         "current_setup"
 
     ]
 
+
     missing = []
+
 
     for key in required:
 
@@ -153,19 +134,16 @@ def validate_config(config):
 
             missing.append(key)
 
+
     return missing
 
 
+
 # ==========================================================
-# CONFIGURATION VALIDE ?
+# CONFIG VALIDE ?
 # ==========================================================
 
 def is_config_valid():
-
-    """
-    Retourne True
-    si la configuration est correcte.
-    """
 
     config = load_config()
 
