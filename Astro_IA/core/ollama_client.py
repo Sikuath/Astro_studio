@@ -998,7 +998,11 @@ Aucune supposition.
     # ======================================================
     # APPEL MODELE OLLAMA
     # ======================================================
-
+    print("==============================")
+    print("PROMPT QWEN")
+    print("Taille caractères :", len(prompt))
+    print("Nombre mots :", len(prompt.split()))
+    print("==============================")
 
     response = ollama.chat(
 
@@ -1022,7 +1026,9 @@ Aucune supposition.
 
             "temperature": 0.10,
 
-            "num_ctx": 8192
+            "num_ctx": 4096,
+
+            "num_predict":1200
 
         }
 

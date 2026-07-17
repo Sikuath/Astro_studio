@@ -151,3 +151,94 @@ p,label {
     padding-bottom:
         1rem;
 }
+/* =========================
+   STREAMLIT TEXT OVERRIDE
+========================= */
+
+
+/* Texte général */
+.stMarkdown,
+.stMarkdown p,
+.stMarkdown li,
+.stText,
+p,
+li,
+span {
+
+    color: #f2f2f2 !important;
+
+}
+
+
+/* Titres */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+
+    color: #ffffff !important;
+
+}
+
+
+/* Texte secondaire / captions */
+.stCaption,
+.stCaption p,
+small {
+
+    color: #cccccc !important;
+
+}
+
+
+/* Labels widgets */
+label,
+[data-testid="stWidgetLabel"] {
+
+    color: #eeeeee !important;
+
+}
+
+
+/* Valeurs métriques */
+[data-testid="stMetricValue"] {
+
+    color: #ffffff !important;
+    font-weight: 700;
+
+}
+
+
+/* Labels métriques */
+[data-testid="stMetricLabel"] {
+
+    color: #dddddd !important;
+
+}
+
+
+/* Texte dans les boîtes info/warning/success */
+[data-testid="stAlert"] p {
+
+    color: #ffffff !important;
+
+}
+
+
+/* Expander */
+[data-testid="stExpander"] summary {
+
+    color: #ffffff !important;
+
+}
+
+
+/* Radio / checkbox */
+.stRadio label,
+.stCheckbox label {
+
+    color: #eeeeee !important;
+
+}

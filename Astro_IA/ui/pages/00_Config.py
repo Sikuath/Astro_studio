@@ -1,10 +1,14 @@
 # ==========================================================
 # Astro IA
 # Page 00 - Configuration
+# Gestion configuration + projet actif
 # ==========================================================
 
 
 import streamlit as st
+
+from pathlib import Path
+
 
 
 from core.config import (
@@ -15,14 +19,31 @@ from core.config import (
 
 
 
+from core.project_manager import (
+    create_project,
+    list_projects,
+    set_active_project,
+    get_active_project,
+    get_projects_root
+)
+
+
+
+
+
 # ==========================================================
-# PAGE CONFIGURATION
+# TITRE
 # ==========================================================
+
 
 st.title(
     "⚙️ Configuration Astro IA"
 )
 
+
+# ==========================================================
+# CHARGEMENT CONFIG
+# ==========================================================
 
 
 config = load_config()
@@ -30,374 +51,415 @@ config = load_config()
 
 
 # ==========================================================
-# CREATION COLONNES PRINCIPALES
+# DOSSIER DE TRAVAIL ACTIF
 # ==========================================================
 
-left, right = st.columns(
-    2,
-    gap="large"
+
+workdir = st.session_state.get(
+    "workdir"
 )
 
 
 
+if workdir:
+
+    workdir = Path(
+        workdir
+    )
+
+else:
+
+    workdir = None
+
+
+
 # ==========================================================
-# COLONNE GAUCHE
-# IA + LOGICIELS
+# GESTION PROJET
 # ==========================================================
 
-with left:
 
+st.header(
+    "📂 Projet astrophotographique"
+)
 
-
-    st.header(
-        "🧠 Intelligence artificielle"
-    )
-
-
-    ollama = config.get(
-        "ollama",
-        {}
-    )
-
-
-    ollama["default_model"] = st.text_input(
-
-        "Modèle principal",
-
-        ollama.get(
-            "default_model",
-            "astro-expert:latest"
-        )
-
-    )
-
-
-    ollama["vision_model"] = st.text_input(
-
-        "Modèle vision",
-
-        ollama.get(
-            "vision_model",
-            "llava:7b"
-        )
-
-    )
-
-
-
-    st.divider()
-
-
-
-    st.header(
-        "🛠️ Logiciels"
-    )
-
-
-    paths = config.get(
-        "paths",
-        {}
-    )
-
-
-    for key, value in paths.items():
-
-
-        paths[key] = st.text_input(
-
-            key.replace(
-                "_",
-                " "
-            ).capitalize(),
-
-            value,
-
-            key=f"path_{key}"
-
-        )
 
 
 
 
 # ==========================================================
-# COLONNE DROITE
-# INSTRUMENTS
+# DOSSIER PROJETS
 # ==========================================================
 
-with right:
+
+projects_root = None
 
 
 
-    st.header(
-        "🔭 Instruments"
+if workdir:
+
+
+    projects_root = get_projects_root(
+
+        workdir
+
     )
 
 
-    instruments = config.get(
-        "instruments",
-        {}
+if projects_root:
+
+
+    st.caption(
+
+        f"📁 Les projets sont stockés ici : {projects_root}"
+
+    )
+
+
+else:
+
+
+    st.info(
+
+        """
+📂 Aucun dossier de traitement actif.
+
+Choisissez d'abord vos images dans la page FITS.
+Le dossier x_projects sera créé automatiquement
+à côté du dossier de traitement.
+"""
+
     )
 
 
 
-    for identifiant, inst in instruments.items():
 
 
-        with st.expander(
+active_project = get_active_project()
 
-            inst.get(
-                "name",
-                identifiant
+
+
+
+
+if active_project:
+
+
+    st.success(
+
+        f"📂 Projet actif : {active_project}"
+
+    )
+
+
+else:
+
+
+    st.info(
+
+        "Aucun projet actif."
+
+    )
+
+
+
+
+
+
+
+tab1, tab2 = st.tabs(
+
+    [
+
+        "➕ Nouveau projet",
+
+        "📁 Ouvrir un projet"
+
+    ]
+
+)
+
+
+
+
+
+
+
+# ==========================================================
+# CREATION NOUVEAU PROJET
+# ==========================================================
+
+
+with tab1:
+
+
+
+    project_name = st.text_input(
+
+        "Nom du projet",
+
+        placeholder="NGC6871_20260716"
+
+    )
+
+
+
+    object_name = st.text_input(
+
+        "Objet astronomique",
+
+        placeholder="NGC6871"
+
+    )
+
+
+
+
+
+
+    if st.button(
+
+        "🚀 Créer le projet",
+
+        type="primary"
+
+    ):
+
+
+
+        if project_name:
+
+
+
+            project_path = create_project(
+
+                workdir,
+
+                project_name,
+
+                object_name
+
             )
+
+
+
+            set_active_project(
+
+                project_path
+
+            )
+
+
+
+            st.success(
+
+                f"✅ Projet créé : {project_path}"
+
+            )
+
+
+
+            st.rerun()
+
+
+
+        else:
+
+
+
+            st.warning(
+
+                "Nom de projet obligatoire."
+
+            )
+
+
+
+
+
+
+
+
+
+# ==========================================================
+# OUVERTURE PROJET EXISTANT
+# ==========================================================
+
+
+with tab2:
+
+
+    if not workdir:
+
+
+        st.info(
+
+            "📷 Sélectionnez d'abord un dossier FITS."
+
+        )
+
+
+        projects = []
+
+
+    else:
+
+
+        projects = list_projects(
+
+            workdir
+
+        )
+
+
+    if projects:
+
+
+
+        selected = st.selectbox(
+
+            "Projet disponible",
+
+            projects
+
+        )
+
+
+
+
+        if st.button(
+
+            "📂 Ouvrir le projet"
 
         ):
 
 
-            inst["name"] = st.text_input(
 
-                "Nom",
+            project_path = (
 
-                inst.get(
-                    "name",
-                    identifiant
-                ),
+                projects_root
 
-                key=f"name_{identifiant}"
+                /
+
+                selected
 
             )
 
 
 
-            inst["type"] = st.text_input(
+            set_active_project(
 
-                "Type",
-
-                inst.get(
-                    "type",
-                    ""
-                ),
-
-                key=f"type_{identifiant}"
+                project_path
 
             )
 
 
 
-            c1, c2 = st.columns(2)
+            st.success(
 
-
-
-            with c1:
-
-
-                inst["aperture"] = st.number_input(
-
-                    "Diamètre mm",
-
-                    value=float(
-
-                        inst.get(
-                            "aperture",
-                            0
-                        )
-
-                    ),
-
-                    key=f"aperture_{identifiant}"
-
-                )
-
-
-
-            with c2:
-
-
-                inst["focal_length"] = st.number_input(
-
-                    "Focale mm",
-
-                    value=float(
-
-                        inst.get(
-                            "focal_length",
-                            0
-                        )
-
-                    ),
-
-                    key=f"focal_{identifiant}"
-
-                )
-
-
-
-            if "effective_focal_length" in inst:
-
-
-                inst["effective_focal_length"] = st.number_input(
-
-                    "Focale corrigée",
-
-                    value=float(
-
-                        inst.get(
-                            "effective_focal_length",
-                            0
-                        )
-
-                    ),
-
-                    key=f"effective_{identifiant}"
-
-                )
-
-
-
-
-    st.divider()
-
-
-
-    st.subheader(
-        "🎯 Configuration actuelle"
-    )
-
-
-    setup_list = list(
-        instruments.keys()
-    )
-
-
-    setup = None
-
-
-
-    if setup_list:
-
-
-        current = config.get(
-
-            "current_setup",
-
-            setup_list[0]
-
-        )
-
-
-
-        setup = st.selectbox(
-
-            "Instrument utilisé",
-
-            options=setup_list,
-
-            index=(
-
-                setup_list.index(current)
-
-                if current in setup_list
-
-                else 0
+                f"✅ Projet chargé : {project_path}"
 
             )
 
-        )
 
 
-        config["current_setup"] = setup
+            st.rerun()
+
+
 
 
 
     else:
 
 
+
         st.info(
 
-            "Aucun instrument configuré."
+            "Aucun projet existant."
 
         )
 
 
 
 
+
+st.divider()
 # ==========================================================
-# VALIDATION
+# FIN CONFIGURATION
 # ==========================================================
+
+
+# ==========================================================
+# INFORMATIONS PROJET
+# ==========================================================
+
 
 st.divider()
 
 
 
-# Petite zone boutons centrée
-
-b1, b2, b3 = st.columns(
-    [2,1,2]
-)
+if active_project:
 
 
-
-with b2:
-
-
-    save_button = st.button(
-
-        "💾 Enregistrer",
-
-        type="primary"
-
+    st.subheader(
+        "📌 Informations projet actif"
     )
 
 
-if save_button:
-
-
-    config["ollama"] = ollama
-
-    config["paths"] = paths
-
-    config["instruments"] = instruments
-
-
-
-    if setup:
-
-        config["current_setup"] = setup
-
-
-
-    save_config(
-
-        config
-
+    st.write(
+        f"**Chemin :** {active_project}"
     )
 
 
-    st.session_state.config_validated = True
+    st.write(
+        """
+Le projet contient :
+
+- les données FITS associées
+- les rapports IA
+- les exports
+- le workflow sauvegardé
+
+La reprise d'une session ne relance pas
+les analyses IA automatiquement.
+"""
+    )
 
 
 
-    if setup:
+# ==========================================================
+# RETOUR WORKFLOW
+# ==========================================================
 
 
-        st.session_state.current_setup = setup
+st.divider()
 
 
-        st.session_state.instrument = (
 
-            instruments[setup]
-            .get(
-                "name",
-                setup
-            )
+if active_project:
+
+
+    if st.button(
+        "🧭 Ouvrir le workflow"
+    ):
+
+
+        st.switch_page(
+
+            "ui/pages/04_Workflow.py"
 
         )
 
 
-    st.success(
 
-        "✅ Configuration enregistrée"
+# ==========================================================
+# RETOUR FITS
+# ==========================================================
 
-    )
+
+if st.button(
+
+    "📷 Aller vers FITS"
+
+):
 
 
     st.switch_page(
@@ -405,59 +467,3 @@ if save_button:
         "ui/pages/01_FITS.py"
 
     )
-
-
-
-
-
-# ==========================================================
-# RESTAURATION
-# ==========================================================
-
-st.divider()
-
-
-
-st.warning(
-
-    "⚠️ Restaurer la configuration usine remplacera le fichier actuel."
-
-)
-
-
-
-r1, r2, r3 = st.columns(
-    [2,1,2]
-)
-
-
-
-with r2:
-
-
-    restore_button = st.button(
-
-        "🔄 Restaurer",
-
-    )
-
-
-
-if restore_button:
-
-
-    restore_default()
-
-
-    st.session_state.config_validated = False
-
-
-
-    st.success(
-
-        "✅ Configuration usine restaurée"
-
-    )
-
-
-    st.rerun()

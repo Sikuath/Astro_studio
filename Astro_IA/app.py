@@ -2,17 +2,22 @@ import streamlit as st
 from pathlib import Path
 
 
+
 from core.config import load_config
 from core.session import init_session
+
 
 
 from ui.sidebar import show_sidebar
 
 
 
+
+
 # ==========================================================
 # CONFIG STREAMLIT
 # ==========================================================
+
 
 st.set_page_config(
 
@@ -28,28 +33,39 @@ st.set_page_config(
 
 
 
+
+
 # ==========================================================
 # CHARGEMENT CSS
 # ==========================================================
 
+
 css_file = Path(
+
     "ui/style.css"
+
 )
+
 
 
 if css_file.exists():
 
+
     st.markdown(
 
         f"""
-        <style>
 
-        {css_file.read_text(
-            encoding="utf-8"
-        )}
+<style>
 
-        </style>
-        """,
+{css_file.read_text(
+
+    encoding="utf-8"
+
+)}
+
+</style>
+
+""",
 
         unsafe_allow_html=True
 
@@ -57,11 +73,20 @@ if css_file.exists():
 
 
 
+
+
+
+
 # ==========================================================
 # CONFIGURATION
 # ==========================================================
 
+
 config = load_config()
+
+
+
+
 
 
 
@@ -69,9 +94,16 @@ config = load_config()
 # SESSION
 # ==========================================================
 
+
 init_session(
+
     config
+
 )
+
+
+
+
 
 
 
@@ -79,15 +111,23 @@ init_session(
 # SIDEBAR
 # ==========================================================
 
+
 show_sidebar(
+
     config
+
 )
+
+
+
+
 
 
 
 # ==========================================================
 # NAVIGATION PAGES
 # ==========================================================
+
 
 pages = {
 
@@ -106,6 +146,7 @@ pages = {
         ),
 
 
+
         st.Page(
 
             "ui/pages/01_FITS.py",
@@ -115,6 +156,7 @@ pages = {
             icon="📷"
 
         ),
+
 
 
         st.Page(
@@ -128,6 +170,7 @@ pages = {
         ),
 
 
+
         st.Page(
 
             "ui/pages/03_Rapport.py",
@@ -135,6 +178,18 @@ pages = {
             title="📋 Rapport",
 
             icon="📋"
+
+        ),
+
+
+
+        st.Page(
+
+            "ui/pages/04_Workflow.py",
+
+            title="🧭 Workflow",
+
+            icon="🧭"
 
         )
 
@@ -144,13 +199,21 @@ pages = {
 
 
 
+
+
+
+
 # ==========================================================
 # EXECUTION
 # ==========================================================
 
+
 pg = st.navigation(
+
     pages
+
 )
+
 
 
 pg.run()

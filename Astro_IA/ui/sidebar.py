@@ -3,10 +3,17 @@ from pathlib import Path
 import base64
 
 
+from core.workflow_manager import (
+    get_workflow,
+    workflow_summary
+)
+
+
 
 # ==========================================================
 # BACKGROUND GLOBAL
 # ==========================================================
+
 
 def load_background():
 
@@ -288,6 +295,7 @@ p,label {{
 # SIDEBAR
 # ==========================================================
 
+
 def show_sidebar(config):
 
 
@@ -304,6 +312,7 @@ def show_sidebar(config):
         # ==========================================
         # TITRE
         # ==========================================
+
 
         st.title(
 
@@ -324,8 +333,9 @@ def show_sidebar(config):
 
 
         # ==========================================
-        # WORKFLOW
+        # WORKFLOW PROJET
         # ==========================================
+
 
         st.subheader(
 
@@ -334,57 +344,95 @@ def show_sidebar(config):
         )
 
 
-        workflow = [
 
-            ("Configuration", "config_validated"),
+        project_path = st.session_state.get(
 
-            ("FITS", "fits_loaded"),
+            "project_path"
 
-            ("Analyse", "analysis_ready"),
-
-            ("Rapport", "report_ready")
-
-        ]
+        )
 
 
 
-        for name, key in workflow:
+        if project_path:
 
 
-            if st.session_state.get(
-
-                key,
-
-                False
-
-            ):
+            try:
 
 
-                st.success(
+                workflow = get_workflow(
 
-                    f"✔ {name}"
+                    project_path
 
                 )
 
 
-            else:
+                summary = workflow_summary(
 
-
-                st.info(
-
-                    f"○ {name}"
+                    project_path
 
                 )
+
+
+
+                st.caption(
+
+                    f"{summary['done']} / {summary['total']} étapes terminées"
+
+                )
+
+
+
+                for step in workflow:
+
+
+                    if step["done"]:
+
+
+                        st.success(
+
+                            f"✔ {step['name']}"
+
+                        )
+
+
+                    else:
+
+
+                        st.info(
+
+                            f"○ {step['name']}"
+
+                        )
+
+
+
+            except Exception as e:
+
+
+                st.warning(
+
+                    f"Workflow indisponible : {e}"
+
+                )
+
+
+
+        else:
+
+
+            st.info(
+
+                "Aucun projet actif"
+
+            )
 
 
 
         st.divider()
-
-
-
         # ==========================================
         # IA
         # ==========================================
+
 
         st.subheader(
 
@@ -435,11 +483,13 @@ def show_sidebar(config):
         # SESSION
         # ==========================================
 
+
         st.subheader(
 
             "🔭 Session"
 
         )
+
 
 
         instrument = st.session_state.get(
@@ -490,8 +540,53 @@ def show_sidebar(config):
 
         )
 
-      
-        
+
+
+        st.divider()
+
+
+
+        # ==========================================
+        # PROJET ACTIF
+        # ==========================================
+
+
+        st.subheader(
+
+            "📁 Projet"
+
+        )
+
+
+
+        if project_path:
+
+
+            st.write(
+
+                f"**Dossier :**"
+
+            )
+
+
+            st.caption(
+
+                str(project_path)
+
+            )
+
+
+        else:
+
+
+            st.info(
+
+                "Aucun projet chargé."
+
+            )
+
+
+
         # ==========================================
         # FOOTER
         # ==========================================

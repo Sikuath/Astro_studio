@@ -3,9 +3,135 @@
 # Astro IA
 # ==========================================================
 
+
 from astroquery.simbad import Simbad
+
 from astropy.coordinates import SkyCoord
+
 from astropy import units as u
+
+
+
+
+
+# ==========================================================
+# VOCABULAIRE ASTRONOMIQUE
+# ==========================================================
+
+
+def get_astro_vocabulary(simbad_type):
+
+    if not simbad_type:
+
+        return []
+
+
+    t = str(simbad_type).lower()
+
+
+    vocabulary = []
+
+
+
+    if "open cluster" in t or "cluster" in t:
+
+        vocabulary = [
+
+            "amas ouvert",
+
+            "population stellaire",
+
+            "champ riche en étoiles",
+
+            "structure stellaire"
+
+        ]
+
+
+
+    elif "globular" in t:
+
+        vocabulary = [
+
+            "amas globulaire",
+
+            "population stellaire ancienne",
+
+            "concentration stellaire dense"
+
+        ]
+
+
+
+    elif (
+        "nebula" in t
+        or "hii" in t
+        or "region" in t
+    ):
+
+        vocabulary = [
+
+            "nébuleuse",
+
+            "région d'émission",
+
+            "gaz interstellaire",
+
+            "structure diffuse"
+
+        ]
+
+
+
+    elif "galaxy" in t:
+
+        vocabulary = [
+
+            "galaxie",
+
+            "structure extragalactique",
+
+            "bras spiraux possibles",
+
+            "halo galactique"
+
+        ]
+
+
+
+    elif "planetary" in t:
+
+        vocabulary = [
+
+            "nébuleuse planétaire",
+
+            "enveloppe gazeuse",
+
+            "étoile centrale"
+
+        ]
+
+
+
+    elif "star" in t:
+
+        vocabulary = [
+
+            "étoile",
+
+            "source stellaire",
+
+            "champ d'étoiles"
+
+        ]
+
+
+
+    return vocabulary
+
+
+
+
 
 
 
@@ -13,88 +139,228 @@ from astropy import units as u
 # CONFIGURATION SIMBAD
 # ==========================================================
 
+
 custom = Simbad()
 
+
+
 custom.add_votable_fields(
+
     "otype",
+
     "ra(d)",
+
     "dec(d)"
+
 )
 
+
+
+
+
+
+
 # ==========================================================
-# RECHERCHE PAR NOM
+# OUTIL LECTURE COLONNE ROBUSTE
 # ==========================================================
+
+
+def get_column(row, names):
+
+    """
+    Recherche une colonne avec plusieurs noms possibles.
+    """
+
+    for name in names:
+
+
+        if name in row.colnames:
+
+            return row[name]
+
+
+
+    return None
+
+
+
+
+
+
+
+# ==========================================================
+# RECHERCHE OBJET
+# ==========================================================
+
 
 def query_object(object_name):
+
     """
-    Recherche un objet SIMBAD par son nom FITS.
+    Recherche un objet SIMBAD par son nom.
+    Retourne un dictionnaire exploitable par Astro IA.
     """
 
+
+
     if not object_name:
+
         return None
+
 
 
     try:
 
+
         result = custom.query_object(
+
             object_name
+
         )
 
 
-        if result is None:
+
+        if result is None or len(result) == 0:
+
             return None
 
 
 
-        # récupération robuste des colonnes
+        row = result[0]
 
-        name_col = "MAIN_ID"
 
-        type_col = "OTYPE"
 
-        ra_col = "RA_d"
+        name = get_column(
 
-        dec_col = "DEC_d"
+            row,
+
+            [
+
+                "main_id",
+
+                "MAIN_ID"
+
+            ]
+
+        )
+
+
+
+        obj_type = get_column(
+
+            row,
+
+            [
+
+                "otype",
+
+                "OTYPE"
+
+            ]
+
+        )
+
+
+
+        ra = get_column(
+
+            row,
+
+            [
+
+                "ra_d",
+
+                "RA_d"
+
+            ]
+
+        )
+
+
+        dec = get_column(
+
+            row,
+
+            [
+
+                "dec_d",
+
+                "DEC_d"
+
+            ]
+
+        )
+
+
 
 
 
         return {
 
+
             "name":
-                str(
-                    result[name_col][0]
-                ).strip(),
+
+                str(name)
+                .strip()
+                if name is not None
+                else object_name,
+
 
 
             "type":
-                str(
-                    result[type_col][0]
-                ),
+
+                str(obj_type)
+                .strip()
+                if obj_type is not None
+                else "Unknown",
+
 
 
             "ra":
-                float(
-                    result[ra_col][0]
-                ),
+
+                float(ra)
+                if ra is not None
+                else None,
+
 
 
             "dec":
-                float(
-                    result[dec_col][0]
+
+                float(dec)
+                if dec is not None
+                else None,
+
+
+
+            "vocabulary":
+
+                get_astro_vocabulary(
+
+                    obj_type
+
                 )
 
         }
 
 
 
+
+
     except Exception as e:
 
+
         print(
+
             "Erreur SIMBAD objet :",
+
             e
+
         )
 
+
         return None
+
+
+
 
 
 
@@ -103,55 +369,90 @@ def query_object(object_name):
 # DISTANCE ANGULAIRE
 # ==========================================================
 
+
 def angular_distance(
+
     ra1,
+
     dec1,
+
     ra2,
+
     dec2
+
 ):
+
     """
     Distance angulaire en degrés.
     """
 
+
+
     c1 = SkyCoord(
+
         ra1,
+
         dec1,
+
         unit="deg"
+
     )
+
 
 
     c2 = SkyCoord(
+
         ra2,
+
         dec2,
+
         unit="deg"
+
     )
+
 
 
     return (
+
         c1.separation(c2)
+
         .degree
+
     )
 
 
 
+
+
+
+
 # ==========================================================
-# OBJETS DU CHAMP
+# RECHERCHE OBJETS DU CHAMP
 # ==========================================================
 
+
 def query_field(
+
     ra,
+
     dec,
+
     radius_arcmin
+
 ):
+
     """
-    Recherche les objets présents
-    dans le champ photographié.
+    Recherche SIMBAD dans le champ.
     """
+
+
 
     objects = []
 
 
+
     try:
+
 
         coord = SkyCoord(
 
@@ -164,15 +465,18 @@ def query_field(
         )
 
 
+
         result = custom.query_region(
 
             coord,
 
             radius=
 
-            radius_arcmin
-            *
-            u.arcmin
+                radius_arcmin
+
+                *
+
+                u.arcmin
 
         )
 
@@ -184,37 +488,87 @@ def query_field(
 
 
 
+
+
         for row in result:
+
 
 
             try:
 
 
+
+                name = get_column(
+
+                    row,
+
+                    [
+
+                        "main_id",
+
+                        "MAIN_ID"
+
+                    ]
+
+                )
+
+
+
+                obj_type = get_column(
+
+                    row,
+
+                    [
+
+                        "otype",
+
+                        "OTYPE"
+
+                    ]
+
+                )
+
+
+
                 objects.append(
+
 
                     {
 
-                        "name":
 
-                            str(
-                                row["MAIN_ID"]
-                            ).strip(),
+                    "name":
+
+                        str(name)
+                        .strip(),
 
 
-                        "type":
 
-                            str(
-                                row["OTYPE"]
-                            )
+                    "type":
+
+                        str(obj_type),
+
+
+
+                    "vocabulary":
+
+                        get_astro_vocabulary(
+
+                            obj_type
+
+                        )
 
                     }
 
                 )
 
 
+
             except Exception:
 
+
                 continue
+
+
 
 
 
@@ -230,7 +584,12 @@ def query_field(
         )
 
 
+
     return objects
+
+
+
+
 
 
 
@@ -238,23 +597,18 @@ def query_field(
 # IDENTIFICATION COMPLETE
 # ==========================================================
 
+
 def identify_target(
+
     object_name,
+
     ra,
+
     dec,
+
     radius_arcmin
+
 ):
-    """
-    Identification complète.
-
-    Retour toujours identique :
-
-    confirmed
-    main_object
-    angular_error_deg
-    field_objects
-    """
-
 
 
     result = {
@@ -288,9 +642,7 @@ def identify_target(
 
 
 
-    # ======================================================
-    # Recherche objet FITS
-    # ======================================================
+
 
 
     simbad_object = query_object(
@@ -304,11 +656,24 @@ def identify_target(
     if simbad_object:
 
 
+
         result["main_object"] = simbad_object
 
 
 
-        if ra is not None and dec is not None:
+        if (
+
+            ra is not None
+
+            and
+
+            dec is not None
+
+            and
+
+            simbad_object["ra"] is not None
+
+        ):
 
 
 
@@ -334,26 +699,24 @@ def identify_target(
 
             )
 
-          
-            # confirmation si l'objet est dans le champ
-
-            field_radius_deg = radius_arcmin / 60
 
 
-            if distance <= field_radius_deg:
+            if distance <= radius_arcmin / 60:
+
 
                 result["confirmed"] = True
 
+
+
         else:
+
 
             result["confirmed"] = True
 
 
 
 
-    # ======================================================
-    # Recherche champ
-    # ======================================================
+
 
 
     if ra is not None and dec is not None:

@@ -6,7 +6,19 @@
 
 
 import streamlit as st
+
 from datetime import datetime
+
+
+
+from pathlib import Path
+
+from core.project_manager import (
+    create_project,
+    set_active_project,
+    get_active_project
+)
+
 
 
 
@@ -21,6 +33,7 @@ st.title(
     "📋 Rapport astrophotographique"
 
 )
+
 
 
 
@@ -47,6 +60,194 @@ if not st.session_state.get(
 
 
     st.stop()
+
+
+
+
+
+
+# ==========================================================
+# WORKFLOW
+# ==========================================================
+
+
+# ==========================================================
+# CREATION PROJET SI NECESSAIRE
+# ==========================================================
+
+
+project_path = get_active_project()
+
+
+
+if not project_path:
+
+
+    st.warning(
+        "📂 Aucun projet associé à cette analyse."
+    )
+
+
+    st.subheader(
+        "Créer le projet astrophotographique"
+    )
+
+
+
+    header = st.session_state.get(
+        "fits_header",
+        {}
+    )
+
+
+
+    default_object = header.get(
+        "OBJECT",
+        "Objet_inconnu"
+    )
+
+
+
+    project_name = st.text_input(
+
+        "Nom du projet",
+
+        value=default_object
+
+    )
+
+
+    object_name = st.text_input(
+
+        "Objet astronomique",
+
+        value=default_object
+
+    )
+
+
+
+    if st.button(
+
+        "🚀 Créer le projet",
+
+        type="primary"
+
+    ):
+
+
+        workdir = st.session_state.get(
+            "workdir"
+        )
+
+
+        if not workdir:
+
+
+            st.error(
+                "Aucun dossier de traitement disponible."
+            )
+
+            st.stop()
+
+
+
+        project_path = create_project(
+
+            workdir,
+
+            project_name,
+
+            object_name
+
+        )
+
+
+
+        set_active_project(
+
+            project_path
+
+        )
+
+
+        st.success(
+
+            f"✅ Projet créé : {project_path}"
+
+        )
+
+
+        st.rerun()
+
+
+
+    st.stop()
+
+
+
+if project_path:
+
+
+    workflow = get_workflow(
+
+        project_path
+
+    )
+
+
+    report_done = False
+
+
+
+    for step in workflow:
+
+
+        if step["id"] == "rapport":
+
+
+            report_done = step["done"]
+
+
+
+    if report_done:
+
+
+        st.success(
+
+            "✅ Rapport déjà validé dans le workflow."
+
+        )
+
+
+    else:
+
+
+        if st.button(
+
+            "✅ Valider le rapport dans le workflow"
+
+        ):
+
+
+            toggle_step(
+
+                project_path,
+
+                "rapport"
+
+            )
+
+
+            st.success(
+
+                "Rapport ajouté au workflow."
+
+            )
+
+
+            st.rerun()
+
 
 
 
@@ -110,6 +311,8 @@ objects = st.session_state.get(
 
 
 
+
+
 # ==========================================================
 # INFORMATIONS ACQUISITION
 # ==========================================================
@@ -124,7 +327,9 @@ st.header(
 
 
 
+
 col1, col2 = st.columns(2)
+
 
 
 
@@ -212,6 +417,8 @@ Elles constituent les données d'acquisition de référence.
 
 
 
+
+
 # ==========================================================
 # POSITION DU CHAMP
 # ==========================================================
@@ -226,7 +433,9 @@ st.header(
 
 
 
+
 c1, c2 = st.columns(2)
+
 
 
 
@@ -307,7 +516,6 @@ if fov:
 
 
 
-
     with c2:
 
 
@@ -321,7 +529,6 @@ if fov:
 
 
 
-
     with c3:
 
 
@@ -332,14 +539,6 @@ if fov:
             f"{fov.get('sampling_arcsec_pixel')}\"/pix"
 
         )
-
-
-
-
-
-
-
-
 # ==========================================================
 # OBJETS CATALOGUES SIRIL
 # ==========================================================
@@ -353,24 +552,77 @@ st.header(
 
 
 
-if objects:
+st.write(
+
+    f"{len(objects)} objets conservés après filtrage Siril."
+
+)
 
 
-    st.write(
-
-        f"{len(objects)} objets conservés après filtrage."
-
-    )
 
 
-else:
+
+with st.expander(
+
+    "🔎 Voir les objets et informations SIMBAD"
+
+):
 
 
-    st.info(
+    if objects:
 
-        "Aucun objet catalogué."
 
-    )
+        for obj in objects:
+
+
+            st.markdown(
+
+                f"""
+### {obj.get('name','?')}
+
+Type catalogue :
+{obj.get('type','?')}
+
+"""
+
+            )
+
+
+
+            if "vocabulary" in obj:
+
+
+                st.write(
+
+                    "Vocabulaire astronomique :"
+
+                )
+
+
+                for word in obj["vocabulary"]:
+
+
+                    st.write(
+
+                        f"- {word}"
+
+                    )
+
+
+
+            st.divider()
+
+
+
+    else:
+
+
+        st.info(
+
+            "Aucun objet."
+
+        )
+
 
 
 
@@ -388,6 +640,7 @@ Ils ne constituent pas une preuve de qualité d'image.
 """
 
 )
+
 
 
 
@@ -414,6 +667,7 @@ if vision_result:
 
 
     st.info(
+
 """
 Cette analyse est réalisée par LLaVA.
 
@@ -421,11 +675,14 @@ Elle correspond uniquement à une observation visuelle.
 Elle ne remplace pas les mesures scientifiques :
 FWHM, HFR, SNR, excentricité, suivi ou photométrie.
 """
+
     )
 
 
     st.markdown(
+
         vision_result
+
     )
 
 
@@ -439,6 +696,13 @@ else:
 
     )
 
+
+
+
+
+
+
+
 # ==========================================================
 # ANALYSE IA ASTRO (QWEN3)
 # ==========================================================
@@ -449,6 +713,7 @@ st.header(
     "🤖 Analyse scientifique Astro IA"
 
 )
+
 
 
 
@@ -477,6 +742,8 @@ else:
 
 
 
+
+
 # ==========================================================
 # RESUME MODELES UTILISES
 # ==========================================================
@@ -490,11 +757,14 @@ st.header(
 
 
 
+
+
 models_info = [
 
     "✅ Astro IA scientifique : modèle Ollama principal (Qwen3)"
 
 ]
+
 
 
 
@@ -521,6 +791,7 @@ else:
 
 
 
+
 for item in models_info:
 
 
@@ -534,13 +805,16 @@ for item in models_info:
 
 
 
+
+
+
 st.info(
 
 """
 Architecture Astro IA :
 
-- Qwen3 analyse les métadonnées FITS, le FOV,
-  le catalogue et les règles scientifiques.
+- Qwen3 analyse les métadonnées FITS,
+  le FOV, le catalogue et les règles scientifiques.
 
 - LLaVA analyse uniquement l'aspect visuel
   de l'image.
@@ -552,6 +826,8 @@ Architecture Astro IA :
 """
 
 )
+
+
 
 
 
@@ -740,6 +1016,7 @@ FIN DU RAPPORT
 
 
 
+
 st.download_button(
 
     "⬇ Télécharger le rapport TXT",
@@ -759,8 +1036,10 @@ st.download_button(
 
 
 
+
+
 # ==========================================================
-# RETOUR
+# NAVIGATION
 # ==========================================================
 
 
@@ -768,15 +1047,46 @@ st.divider()
 
 
 
-if st.button(
-
-    "⬅ Retour analyse"
-
-):
 
 
-    st.switch_page(
+col1, col2 = st.columns(2)
 
-        "ui/pages/02_Analyse.py"
 
-    )
+
+
+
+with col1:
+
+
+    if st.button(
+
+        "⬅ Retour analyse"
+
+    ):
+
+
+        st.switch_page(
+
+            "ui/pages/02_Analyse.py"
+
+        )
+
+
+
+
+
+with col2:
+
+
+    if st.button(
+
+        "🧭 Aller au workflow"
+
+    ):
+
+
+        st.switch_page(
+
+            "ui/pages/04_Workflow.py"
+
+        )
