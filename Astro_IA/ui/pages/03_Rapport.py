@@ -1047,14 +1047,14 @@ with col1:
 
     if st.button(
 
-        "⬅ Retour FITS"
+        "⬅ Retour"
 
     ):
 
 
         st.switch_page(
 
-            "ui/pages/01_FITS.py"
+            "ui/pages/00_Config.py"
 
         )
 
