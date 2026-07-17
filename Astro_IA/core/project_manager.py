@@ -106,14 +106,16 @@ def create_project(
 
 ):
 
-    """
-    Création :
-
-    Traitement/x_projects/NOM_PROJET
-
-    """
 
     name = sanitize_name(name)
+
+
+    timestamp = datetime.now().strftime(
+        "%Y%m%d_%H%M%S"
+    )
+
+
+    name = f"{name}_{timestamp}"
 
 
 
@@ -190,7 +192,7 @@ def create_project(
     project = {
 
 
-        "name":
+        "project_id":
 
             name,
 
