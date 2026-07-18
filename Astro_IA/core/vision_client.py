@@ -18,17 +18,28 @@ import ollama
 def clean_vision_result(text):
 
     if not text:
-
         return text
 
 
-    text = text.replace(
+    unwanted = [
 
-        "Observation visuelle uniquement.\n",
+        "Observation visuelle uniquement.",
 
-        ""
+        "Bonjour, je suis un modèle d'IA spécialisé dans l'analyse visuelle des images astronomiques.",
 
-    )
+        "Bonjour, je suis un modèle d'IA spécialisé dans l'analyse visuelle des images astronomiques.",
+
+        "Je ne peux pas accéder aux métadonnées FITS ou aux informations d'acquisition de l'image, mais je peux vous aider à décrire ce que je vois dans l'image."
+
+    ]
+
+
+    for line in unwanted:
+
+        text = text.replace(
+            line,
+            ""
+        )
 
 
     return text.strip()
@@ -88,129 +99,124 @@ def analyse_image(
 
     prompt = """
 
-Tu es Astro IA Vision.
+Tu es un assistant d'observation visuelle pour astrophotographie.
 
-Tu analyses uniquement une prévisualisation
-étirée d'une image astrophotographique.
+Observe uniquement l'image fournie.
 
-Tu n'as accès qu'à l'image.
+Ton rôle est de décrire ce qu'un humain pourrait remarquer
+en regardant cette image.
 
-Tu ne connais pas :
-
-- objet
-- coordonnées
-- caméra
-- focale
-- acquisition
-
-
-Ton rôle est uniquement une observation
-visuelle.
-
-
-Commence obligatoirement par :
-
-Observation visuelle uniquement.
-
-
-
-==================================================
-1 - FOND DE CIEL
-==================================================
-
-Décris :
-
-- homogénéité du fond
-- gradients lumineux visibles
-- zones claires ou sombres
-- variations du fond
-
-
-==================================================
-2 - ETOILES
-==================================================
+Ne cherche pas à identifier l'objet.
+Ne donne pas de nom astronomique.
+Ne fais aucune mesure scientifique.
 
 Décris uniquement :
 
-- densité apparente
-- étoiles brillantes et faibles
-- aspect général
-- étoiles ponctuelles ou allongées
+1. Apparence générale
+- image sombre ou lumineuse
+- fond uniforme ou variable
+- contraste général
 
+2. Etoiles
+- nombreuses ou peu nombreuses
+- ponctuelles ou légèrement déformées
+- étoiles brillantes dominantes ou non
 
-Interdiction :
-
-Ne jamais donner :
-
-- FWHM
-- HFR
-- seeing
-- excentricité
-- suivi
-- résolution
-- bruit mesuré
-- photométrie
-
-
-==================================================
-3 - STRUCTURES ASTRONOMIQUES
-==================================================
-
-Recherche uniquement :
-
-- amas apparent
-- nébulosités
-- extensions faibles
+3. Structures visibles
+- zones lumineuses
 - zones sombres
-- poussières apparentes
+- extensions diffuses
+- filaments visibles
 
+Ne donne aucune explication physique.
 
-Si rien n'est clairement visible :
+4. Couleurs visibles
+- dominante générale
+- variations de couleurs visibles
 
-"Aucune structure clairement identifiable
-sur cette prévisualisation."
+5. Défauts apparents
+Cherche uniquement les éléments suivants :
 
+- gradient visible
+- dominante de couleur visible
+- saturation visible
+- halo autour des étoiles
+- artefact visible
+- étoile allongée visible
+- texture granuleuse visible
+
+Pour chaque élément :
+
+Si présent :
+"Détecté : ..."
+
+Si absent :
+"Non observé : ..."
+
+Ne jamais conclure sur la qualité globale de l'image.
+
+Termine cette section par :
+
+"Aucun autre défaut visuel évident."
 
 ==================================================
-4 - DEFAUTS VISUELS
+VOCABULAIRE AUTORISE
 ==================================================
 
-Signale uniquement :
+Tu décris uniquement des apparences visuelles.
 
-- gradients
-- dominante couleur
+Utilise uniquement ces termes :
+
+- étoile
+- groupe d'étoiles
+- zone lumineuse
+- zone sombre
+- structure diffuse
+- extension diffuse
+- filament apparent
+- variation de luminosité
+- variation de couleur
+- fond de ciel
+- halo
+- artefact
+- trace
 - saturation
-- artefacts
-- traces
+- texture granuleuse
+- étoiles ponctuelles
+- étoiles allongées
 
 
 ==================================================
-REGLES ABSOLUES
+VOCABULAIRE INTERDIT
 ==================================================
 
-Tu ne réalises aucune mesure scientifique.
+Ne jamais utiliser :
 
-Tu ne détermines jamais :
-
-- qualité acquisition
-- mise au point
-- seeing
-- suivi
-- calibration
-
-
-Tu ne dois jamais identifier
-un objet astronomique.
-
-
-Si une information n'est pas visible :
-
-"Non déterminable visuellement."
+- galaxie
+- nébuleuse
+- amas stellaire
+- trou noir
+- poussière interstellaire
+- gaz ionisé
+- région d'émission
+- formation stellaire
+- matière sombre
+- objet céleste
+- type d'objet astronomique
 
 
-Réponds uniquement en français.
+Même si cela semble probable.
+
+Une image peut uniquement être décrite,
+jamais interprétée.
+
+Si rien n'est visible écrire :
+"Aucun défaut visuel évident."
+
+Réponds sous forme de rapport court."
 
 """
+
 
 
 

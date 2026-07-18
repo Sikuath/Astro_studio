@@ -1035,7 +1035,10 @@ if result:
             )
 
 
-
+            print("==============================")
+            print("AVANT QWEN")
+            print("VISION SESSION :")
+            print("==============================")
             response = ask_ollama(
 
                 model=ollama_config.get(
