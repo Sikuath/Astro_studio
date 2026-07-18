@@ -12,6 +12,7 @@ from core.rgb_export import (
     save_rgb_final,
     open_with_siril
 )
+from core.fits_metadata import update_final_header
 
 
 # ─────────────────────────────────
@@ -264,7 +265,10 @@ def show_sho_lab():
                     workdir
                 )
 
-
+                update_final_header(
+                image_finale,
+                workdir
+                )
 
             st.success(
                 f"RGB_final.fit créé ✔\n\n{image_finale}"

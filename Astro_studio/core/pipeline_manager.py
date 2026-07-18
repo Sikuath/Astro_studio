@@ -4,6 +4,7 @@ import shutil
 from core.pipeline_guard import PipelineGuard
 from core.siril_runner import SirilRunner
 from core.prepare_sequence import prepare_sequence
+from core.session_exporter import run_session_export
 
 
 class PipelineManager:
@@ -298,7 +299,30 @@ class PipelineManager:
                 str(dst)
             )
 
+    # =========================================================
+    # EXPORT SESSION ASTRO IA
+    # =========================================================
 
+    def export_ai_session(self):
+
+        output_dir = (
+
+            self.workdir
+            /
+            "x_projects"
+            /
+            "data_sessions"
+
+        )
+
+
+        return run_session_export(
+
+            self.workdir,
+
+            output_dir
+
+        )
 
     # =========================================================
     # FULL PIPELINE
@@ -606,6 +630,32 @@ class PipelineManager:
             "✔ STEP 6 done"
         )
 
+        # =====================================================
+        # STEP 7 EXPORT ASTRO IA
+        # =====================================================
+
+        log(
+            "🧠 STEP 7 - Export Astro IA session"
+        )
+
+
+        try:
+
+
+            json_file = self.export_ai_session()
+
+
+            log(
+                f"✔ Session exportée : {json_file}"
+            )
+
+
+        except Exception as e:
+
+
+            log(
+                f"⚠ Astro IA export failed : {e}"
+            )
 
 
         if progress_callback:
@@ -613,9 +663,9 @@ class PipelineManager:
             progress_callback(1.0)
 
         # =====================================================
-        # STEP 7 - CLEANUP
+        # STEP 8 - CLEANUP
         # =====================================================
-        log("🧹 STEP 7 - Cleaning temporary files")
+        log("🧹 STEP 8 - Cleaning temporary files")
 
         try:
             self.cleanup()
@@ -623,7 +673,7 @@ class PipelineManager:
             log(f"⚠ Cleanup failed: {e}")
 
         log("✔ Cleanup done")
-
+        
         # =====================================================
         # END
         # =====================================================

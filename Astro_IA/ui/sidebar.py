@@ -8,6 +8,8 @@ from core.workflow_manager import (
     workflow_summary
 )
 
+from core.optic_detector import detect_optic
+
 
 
 # ==========================================================
@@ -47,11 +49,6 @@ def load_background():
 <style>
 
 
-/* ==================================================
-   APPLICATION BACKGROUND
-================================================== */
-
-
 .stApp {{
 
     background:
@@ -87,11 +84,6 @@ def load_background():
 
 
 
-/* ==================================================
-   MAIN CONTAINER GLASS
-================================================== */
-
-
 div.block-container {{
 
     background:
@@ -122,11 +114,6 @@ div.block-container {{
 
 
 
-/* ==================================================
-   SIDEBAR GLASS
-================================================== */
-
-
 section[data-testid="stSidebar"] {{
 
     background:
@@ -152,11 +139,6 @@ section[data-testid="stSidebar"] > div {{
 
 
 
-/* ==================================================
-   TEXTES
-================================================== */
-
-
 h1,h2,h3,h4,h5,h6 {{
 
     color:
@@ -175,11 +157,6 @@ p,label {{
 
 }}
 
-
-
-/* ==================================================
-   BUTTONS
-================================================== */
 
 
 .stButton > button {{
@@ -217,11 +194,6 @@ p,label {{
 
 
 
-/* ==================================================
-   CODE / TERMINAL IA
-================================================== */
-
-
 .stCode {{
 
     background:
@@ -252,11 +224,6 @@ p,label {{
 
 }}
 
-
-
-/* ==================================================
-   COMPACT UI
-================================================== */
 
 
 .block-container {{
@@ -299,8 +266,6 @@ p,label {{
 def show_sidebar(config):
 
 
-    # Chargement fond global
-
     load_background()
 
 
@@ -315,16 +280,12 @@ def show_sidebar(config):
 
 
         st.title(
-
             "🤖 Astro IA"
-
         )
 
 
         st.caption(
-
             "Assistant astrophotographique local"
-
         )
 
 
@@ -336,52 +297,72 @@ def show_sidebar(config):
         # WORKFLOW PROJET
         # ==========================================
 
-        st.subheader("📂 Workflow")
 
-        project_path = st.session_state.get("project_path")
+        st.subheader(
+            "📂 Workflow"
+        )
+
+
+        project_path = st.session_state.get(
+            "project_path"
+        )
+
 
         if project_path:
 
+
             try:
 
-                summary = workflow_summary(project_path)
+
+                summary = workflow_summary(
+                    project_path
+                )
+
 
                 st.metric(
+
                     "Progression",
+
                     f"{summary['done']} / {summary['total']}"
+
                 )
+
 
             except Exception:
 
-                st.info("Workflow indisponible")
+
+                st.info(
+                    "Workflow indisponible"
+                )
+
 
         else:
 
-            st.info("Aucun projet actif")
+
+            st.info(
+                "Aucun projet actif"
+            )
+
+
 
         st.divider()
-        
+
+
+
         # ==========================================
         # IA
         # ==========================================
 
 
         st.subheader(
-
             "🖥 IA"
-
         )
-
 
 
         ollama = config.get(
-
             "ollama",
-
             {}
-
         )
-
 
 
         st.write(
@@ -406,38 +387,129 @@ def show_sidebar(config):
         )
 
 
-
         st.divider()
 
 
 
         # ==========================================
-        # SESSION
+        # SESSION ASTRO
         # ==========================================
 
 
         st.subheader(
-
             "🔭 Session"
+        )
+
+
+        header = st.session_state.get(
+
+            "fits_header",
+
+            {}
 
         )
 
 
+        camera = st.session_state.get(
 
-        instrument = st.session_state.get(
+            "camera",
 
-            "instrument",
+            header.get(
 
-            "Aucun"
+                "INSTRUME",
+
+                "Inconnue"
+
+            )
 
         )
+
+
+        focal = st.session_state.get(
+
+            "focal_length",
+
+            header.get(
+
+                "FOCALLEN",
+
+                None
+
+            )
+
+        )
+
+
+        try:
+
+
+            optic = detect_optic(
+
+                focal
+                
+
+            )
+
+
+        except Exception as e:
+
+            optic = "Optique inconnue"
+        # ==========================================
+        # AFFICHAGE SESSION
+        # ==========================================
+
+
+        st.write(
+
+            f"**Optique :** {optic}"
+
+        )
+
+
+        st.write(
+
+            f"**Caméra :** {camera}"
+
+        )
+
+
+        if focal:
+
+
+            try:
+
+                focal_display = f"{float(focal):.1f} mm"
+
+            except Exception:
+
+                focal_display = str(focal)
+
+
+        else:
+
+            focal_display = "Inconnue"
+
+
+
+        st.write(
+
+            f"**Focale :** {focal_display}"
+
+        )
+
 
 
         objet = st.session_state.get(
 
             "object_name",
 
-            "Aucun"
+            header.get(
+
+                "OBJECT",
+
+                "Aucun"
+
+            )
 
         )
 
@@ -450,13 +522,6 @@ def show_sidebar(config):
 
         )
 
-
-
-        st.write(
-
-            f"**Instrument :** {instrument}"
-
-        )
 
 
         st.write(
@@ -496,7 +561,7 @@ def show_sidebar(config):
 
             st.write(
 
-                f"**Dossier :**"
+                "**Dossier :**"
 
             )
 
@@ -516,6 +581,10 @@ def show_sidebar(config):
                 "Aucun projet chargé."
 
             )
+
+
+
+        st.divider()
 
 
 

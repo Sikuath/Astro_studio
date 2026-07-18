@@ -6,7 +6,8 @@ CONFIG_FILE = Path("config.json")
 
 DEFAULT_CONFIG = {
     "workdir": "",
-    "siril_path": ""
+    "siril_path": "",
+    "session_path": ""
 }
 
 
