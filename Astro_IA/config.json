@@ -3,7 +3,8 @@
         "images": "C:\\Users\\yoye_\\Pictures\\Astrophoto\\Traitement",
         "reports": "F:/Astro_suite/Astro_IA/reports",
         "siril": "C:/Program Files/Siril/bin/siril-cli.exe",
-        "gimp": "C:/Program Files/GIMP 3/bin/gimp.exe"
+        "gimp": "C:/Program Files/GIMP 3/bin/gimp.exe",
+        "data_sessions": "C:\\Users\\yoye_\\Pictures\\Astrophoto\\Traitement\\x_projects\\data_sessions"
     },
     "ollama": {
         "url": "http://localhost:11434",

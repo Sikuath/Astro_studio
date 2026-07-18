@@ -1,13 +1,16 @@
 import streamlit as st
 from pathlib import Path
 import shutil
+import json
+
 
 from core.fits_reader import read_fits_header
 from core.config import load_config
 from core.optic_detector import detect_optic
 
+
 # ==========================================================
-# FORMATAGE VALEURS FITS
+# FORMATAGE
 # ==========================================================
 
 def format_value(value, decimals=2):
@@ -24,9 +27,43 @@ def format_value(value, decimals=2):
             .replace(".", ",")
         )
 
-    except Exception:
+    except:
 
         return str(value)
+
+
+
+def format_time(seconds):
+
+    try:
+
+        seconds = int(seconds)
+
+        h = seconds // 3600
+
+        m = (seconds % 3600) // 60
+
+        s = seconds % 60
+
+
+        if h:
+
+            return f"{h}h {m}min"
+
+        elif m:
+
+            return f"{m}min {s}s"
+
+        else:
+
+            return f"{s}s"
+
+
+    except:
+
+        return "?"
+
+
 
 def format_ra(header):
 
@@ -34,23 +71,38 @@ def format_ra(header):
 
         return header["OBJCTRA"]
 
+
     try:
 
-        ra = float(header.get("RA"))
+        ra = float(
+            header.get("RA")
+        )
+
 
         total_hours = ra / 15
 
         h = int(total_hours)
 
-        m = int((total_hours-h)*60)
+        m = int(
+            (total_hours-h)*60
+        )
 
-        s = ((total_hours-h)*60-m)*60
+        s = (
+            (total_hours-h)*60-m
+        )*60
 
-        return f"{h:02d}h {m:02d}m {s:05.2f}s"
+
+        return (
+            f"{h:02d}h "
+            f"{m:02d}m "
+            f"{s:05.2f}s"
+        )
+
 
     except:
 
         return "?"
+
 
 
 
@@ -60,29 +112,140 @@ def format_dec(header):
 
         return header["OBJCTDEC"]
 
+
     try:
 
-        dec = float(header.get("DEC"))
+        dec = float(
+            header.get("DEC")
+        )
 
-        sign = "+" if dec >= 0 else "-"
+
+        sign = "+"
+
+        if dec < 0:
+
+            sign = "-"
+
 
         dec = abs(dec)
 
+
         d = int(dec)
 
-        m = int((dec-d)*60)
+        m = int(
+            (dec-d)*60
+        )
 
-        s = ((dec-d)*60-m)*60
+        s = (
+            (dec-d)*60-m
+        )*60
 
-        return f"{sign}{d:02d}° {m:02d}' {s:05.2f}\""
+
+        return (
+            f"{sign}{d:02d}° "
+            f"{m:02d}' "
+            f"{s:05.2f}\""
+        )
+
 
     except:
 
         return "?"
 
+
+
 # ==========================================================
-# NETTOYAGE DOSSIER TEMPORAIRE
+# SESSION ASTRO IA
 # ==========================================================
+
+
+def get_latest_session(config):
+
+
+    try:
+
+        folder = Path(
+            config["paths"]["data_sessions"]
+        )
+
+
+    except:
+
+        return None
+
+
+
+    if not folder.exists():
+
+        return None
+
+
+
+    files = sorted(
+
+        folder.glob(
+            "astro_session_*.json"
+        ),
+
+        reverse=True
+
+    )
+
+
+    if not files:
+
+        return None
+
+
+
+    return files[0]
+
+
+
+
+
+def load_session_json(config):
+
+
+    session_file = get_latest_session(
+        config
+    )
+
+
+    if not session_file:
+
+        return {}
+
+
+
+    try:
+
+        with open(
+
+            session_file,
+
+            "r",
+
+            encoding="utf-8"
+
+        ) as f:
+
+
+            return json.load(f)
+
+
+
+    except:
+
+        return {}
+
+
+
+
+# ==========================================================
+# NETTOYAGE TEMP
+# ==========================================================
+
 
 def clean_temp_folder(temp_dir):
 
@@ -118,38 +281,53 @@ def clean_temp_folder(temp_dir):
 
 
         temp_dir.mkdir(
+
             parents=True,
+
             exist_ok=True
+
         )
 
 
 
 # ==========================================================
-# STYLE LOCAL PAGE FITS
+# STYLE
 # ==========================================================
 
+
 st.markdown(
-    """
-    <style>
 
-    .fits-info {
-        font-size: 0.82rem;
-        line-height: 1.5;
-        color: #eeeeee;
-    }
+"""
+<style>
 
-    .fits-info b {
-        color: #38bdf8;
-    }
+.fits-info {
 
-    .fits-title {
-        font-size: 1.1rem;
-        color: #facc15;
-    }
+font-size:0.82rem;
+line-height:1.5;
+color:#eeeeee;
 
-    </style>
-    """,
-    unsafe_allow_html=True
+}
+
+
+.fits-info b {
+
+color:#38bdf8;
+
+}
+
+
+.fits-title {
+
+font-size:1.1rem;
+color:#facc15;
+
+}
+
+</style>
+""",
+
+unsafe_allow_html=True
+
 )
 
 
@@ -157,6 +335,7 @@ st.markdown(
 # ==========================================================
 # PAGE
 # ==========================================================
+
 
 st.title(
     "📷 Analyse FITS"
@@ -170,28 +349,36 @@ st.write(
 
 
 # ==========================================================
-# CONFIGURATION
+# CONFIG
 # ==========================================================
+
 
 config = load_config()
 
 
 image_root = Path(
+
     config["paths"]["images"]
+
 )
 
 
 
 if not image_root.exists():
 
+
     st.error(
         f"Dossier images introuvable : {image_root}"
     )
+
 
     st.stop()
 
 
 
+session_data = load_session_json(
+    config
+)
 # ==========================================================
 # DOSSIER TEMPORAIRE
 # ==========================================================
@@ -207,8 +394,6 @@ temp_dir = (
 )
 
 
-
-# nettoyage au premier passage uniquement
 
 if "temp_cleaned" not in st.session_state:
 
@@ -226,6 +411,7 @@ if "temp_cleaned" not in st.session_state:
 # SELECTION FITS
 # ==========================================================
 
+
 st.header(
     "📂 Sélection du fichier"
 )
@@ -233,19 +419,23 @@ st.header(
 
 
 fits_file = st.file_uploader(
+
     "Choisir une image FITS",
+
     type=[
         "fit",
         "fits",
         "fts"
     ]
+
 )
 
 
 
 # ==========================================================
-# COPIE DANS X_TEMP
+# COPIE TEMP
 # ==========================================================
+
 
 if fits_file:
 
@@ -253,14 +443,6 @@ if fits_file:
     original_name = Path(
         fits_file.name
     )
-
-
-
-    temp_dir.mkdir(
-        parents=True,
-        exist_ok=True
-    )
-
 
 
     temp_path = (
@@ -276,8 +458,11 @@ if fits_file:
 
 
     with open(
+
         temp_path,
+
         "wb"
+
     ) as f:
 
 
@@ -292,19 +477,6 @@ if fits_file:
     )
 
 
-    st.session_state.image_name = (
-
-        original_name.name
-
-    )
-
-
-    st.session_state.temp_dir = str(
-        temp_dir.resolve()
-    )
-
-
-
     try:
 
 
@@ -316,14 +488,8 @@ if fits_file:
         st.session_state.fits_header = header
 
 
-
         st.success(
             "✅ FITS lu correctement"
-        )
-
-
-        st.caption(
-            f"📁 Dossier temporaire : {temp_path}"
         )
 
 
@@ -335,17 +501,19 @@ if fits_file:
             f"Erreur lecture FITS : {e}"
         )
 
+
         st.stop()
 
 
 
+
 # ==========================================================
-# AFFICHAGE HEADER
+# AFFICHAGE
 # ==========================================================
 
+
 if st.session_state.get(
-    "fits_header",
-    {}
+    "fits_header"
 ):
 
 
@@ -356,145 +524,10 @@ if st.session_state.get(
     st.divider()
 
 
-    st.header(
-        "🔭 Informations acquisition"
-    )
 
-
-
-    col1, col2, col3 = st.columns(3)
-
-
-
-    with col1:
-
-
-        st.markdown(
-            f"""
-
-<div class="fits-info">
-
-<div class="fits-title">
-🔭 Acquisition
-</div>
-
-<b>Objet :</b><br>
-{header.get('OBJECT','Inconnu')}
-
-<br><br>
-
-<b>Optique :</b><br>
-{
-detect_optic(
-    header.get(
-        "FOCALLEN",
-        0
-    )
-)
-}
-
-<br><br>
-
-<b>Focale :</b><br>
-{format_value(header.get('FOCALLEN','?'))} mm
-
-
-
-</div>
-
-            """,
-            unsafe_allow_html=True
-        )
-
-
-
-    with col2:
-
-
-        st.markdown(
-            f"""
-
-<div class="fits-info">
-
-<div class="fits-title">
-📷 Caméra
-</div>
-
-<b>Instrument :</b><br>
-{header.get('INSTRUME','Inconnu')}
-
-<br><br>
-
-<b>Pixel :</b><br>
-{format_value(header.get('XPIXSZ','?'))} × {format_value(header.get('YPIXSZ','?'))} µm
-
-<br><br>
-
-<b>Gain :</b><br>
-{header.get('GAIN','?')}
-
-<br><br>
-
-<b>Offset :</b><br>
-{header.get('OFFSET','?')}
-
-<br><br>
-
-<b>CCD :</b><br>
-{format_value(header.get('CCD-TEMP','?'))} °C
-
-</div>
-
-            """,
-            unsafe_allow_html=True
-        )
-
-
-
-    with col3:
-
-
-        st.markdown(
-            f"""
-
-<div class="fits-info">
-
-<div class="fits-title">
-🌌 Céleste
-</div>
-
-<b>RA :</b><br>
-{format_ra(header)}
-
-<br><br>
-
-<b>DEC :</b><br>
-{format_dec(header)}
-
-<br><br>
-
-<b>Date :</b><br>
-{header.get('DATE-OBS','?')}
-
-<br><br>
-
-<b>Filtre :</b><br>
-{header.get('FILTER','Inconnu')}
-
-</div>
-
-            """,
-            unsafe_allow_html=True
-        )
-
-
-# ==========================================================
-# VALIDATION
-# ==========================================================
-
-    st.divider()
-
-
+    # ======================================================
+    # VALIDATION AVANT AFFICHAGE DES DATAS
+    # ======================================================
 
     if st.button(
         "✅ Valider cette image",
@@ -513,7 +546,7 @@ detect_optic(
 
         st.session_state.camera = header.get(
             "INSTRUME",
-            "Inconnue"
+            ""
         )
 
 
@@ -553,6 +586,10 @@ detect_optic(
         )
 
 
+        st.session_state.session_data = session_data
+
+
+
         st.success(
             "✅ FITS validé"
         )
@@ -560,4 +597,324 @@ detect_optic(
 
         st.switch_page(
             "ui/pages/02_Analyse.py"
+        )
+
+
+
+    st.caption(
+        "Les données ci-dessous proviennent du header FITS "
+        "et de la session Astro IA associée."
+    )
+
+
+
+    st.divider()
+
+
+
+    st.header(
+        "🔭 Informations acquisition"
+    )
+
+
+
+    col1, col2, col3, col4 = st.columns(
+        4
+    )
+
+
+
+    # ======================================================
+    # ACQUISITION
+    # ======================================================
+
+    with col1:
+
+
+        st.markdown(
+
+f"""
+
+<div class="fits-info">
+
+<div class="fits-title">
+🔭 Acquisition
+</div>
+
+
+<b>Objet :</b><br>
+{header.get('OBJECT','Inconnu')}
+
+
+<br><br>
+
+
+<b>Optique :</b><br>
+{
+detect_optic(
+    header.get(
+        "FOCALLEN",
+        0
+    )
+)
+}
+
+
+<br><br>
+
+
+<b>Focale :</b><br>
+{format_value(header.get('FOCALLEN'))} mm
+
+
+<br><br>
+
+
+<b>Télescope :</b><br>
+{header.get('TELESCOP','Inconnu')}
+
+
+</div>
+
+""",
+
+unsafe_allow_html=True
+
+        )
+
+
+
+    # ======================================================
+    # CAMERA
+    # ======================================================
+
+    with col2:
+
+
+        st.markdown(
+
+f"""
+
+<div class="fits-info">
+
+<div class="fits-title">
+📷 Caméra
+</div>
+
+
+<b>Instrument :</b><br>
+{header.get('INSTRUME','Inconnu')}
+
+
+<br><br>
+
+
+<b>Pixel :</b><br>
+{format_value(header.get('XPIXSZ'))}
+×
+{format_value(header.get('YPIXSZ'))}
+µm
+
+
+<br><br>
+
+
+<b>Gain :</b><br>
+{header.get('GAIN','?')}
+
+
+<br><br>
+
+
+<b>Offset :</b><br>
+{header.get('OFFSET','?')}
+
+
+<br><br>
+
+
+<b>CCD :</b><br>
+{format_value(header.get('CCD-TEMP'))} °C
+
+
+</div>
+
+""",
+
+unsafe_allow_html=True
+
+        )
+
+
+
+    # ======================================================
+    # FILTRES / SESSION ASTRO IA
+    # ======================================================
+
+    with col3:
+
+
+        st.markdown(
+
+"""
+
+<div class="fits-info">
+
+<div class="fits-title">
+🌈 Filtres
+</div>
+
+""",
+
+unsafe_allow_html=True
+
+        )
+
+
+
+        if session_data:
+
+
+            st.write(
+                f"Mode : **{session_data.get('mode','?')}**"
+            )
+
+
+            layers = session_data.get(
+                "layers",
+                {}
+            )
+
+
+            for name, data in layers.items():
+
+
+                filt = data.get(
+                    "filter",
+                    name
+                )
+
+
+                stack = data.get(
+                    "stack",
+                    0
+                )
+
+
+                live = data.get(
+                    "livetime",
+                    0
+                )
+
+
+                unit = data.get(
+                    "unit",
+                    0
+                )
+
+
+                st.markdown(
+
+f"""
+
+<b>{filt}</b><br>
+
+{stack} × {format_value(unit,0)} s
+
+<br>
+
+Total :
+{format_time(live)}
+
+<br><br>
+
+""",
+
+unsafe_allow_html=True
+
+                )
+
+
+
+            st.markdown(
+
+f"""
+
+<b>Intégration totale :</b><br>
+
+{format_time(
+    session_data.get(
+        "total_livetime",
+        0
+    )
+)}
+
+</div>
+
+""",
+
+unsafe_allow_html=True
+
+            )
+
+
+        else:
+
+
+            st.info(
+                "Aucune session Astro IA trouvée"
+            )
+
+
+
+    # ======================================================
+    # CELESTE
+    # ======================================================
+
+    with col4:
+
+
+        st.markdown(
+
+f"""
+
+<div class="fits-info">
+
+
+<div class="fits-title">
+🌌 Céleste
+</div>
+
+
+<b>RA :</b><br>
+{format_ra(header)}
+
+
+<br><br>
+
+
+<b>DEC :</b><br>
+{format_dec(header)}
+
+
+<br><br>
+
+
+<b>Date :</b><br>
+{header.get('DATE-OBS','?')}
+
+
+<br><br>
+
+
+<b>Filtre :</b><br>
+{header.get('FILTER','Inconnu')}
+
+
+</div>
+
+""",
+
+unsafe_allow_html=True
+
         )

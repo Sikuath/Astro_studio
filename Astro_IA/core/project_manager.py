@@ -371,30 +371,34 @@ def load_project_file(
 
 def list_projects(workdir):
 
-
     """
     Retourne les projets existants
     associés au dossier de traitement.
+
+    Les dossiers internes Astro IA
+    ne sont pas considérés comme des projets.
     """
 
 
     root = get_projects_root(
-
         workdir
-
     )
-
 
 
     if root is None:
 
-
         return []
 
 
+    hidden_folders = [
+
+        "data_sessions",
+        "x_temp"
+
+    ]
+
 
     projects = []
-
 
 
     for folder in root.iterdir():
@@ -403,12 +407,14 @@ def list_projects(workdir):
         if folder.is_dir():
 
 
+            if folder.name in hidden_folders:
+
+                continue
+
+
             projects.append(
-
                 folder.name
-
             )
-
 
 
     return sorted(projects)

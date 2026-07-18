@@ -11,7 +11,25 @@ CONFIG_FILE = Path("config.json")
 
 DEFAULT_FILE = Path("config_default.json")
 
+# ==========================================================
+# PATHS
+# ==========================================================
 
+def get_path(name):
+
+    config = load_config()
+
+    try:
+
+        return Path(
+            config["paths"][name]
+        )
+
+    except KeyError:
+
+        raise KeyError(
+            f"Chemin absent dans config.json : {name}"
+        )
 
 # ==========================================================
 # CHARGEMENT
